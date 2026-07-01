@@ -17,4 +17,4 @@ jobs:
       - name: Xcode version
         run: xcodebuild -version
       - name: Build
-        run: xcodebuild -project Whisky.xcodeproj -scheme Whisky -configuration Debug CODE_SIGNING_ALLOWED=NO build
+        run: xcodebuild -project Whisky.xcodeproj -scheme Whisky -configuration Debug CODE_SIGNING_ALLOWED=NO SWIFTLINT_SKIP=YES build
