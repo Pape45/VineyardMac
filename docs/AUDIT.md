@@ -26,7 +26,6 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 
 ## Confirmed Cleanup
 
-- Sparkle appcast is still `https://data.getwhisky.app/appcast.xml`.
 - Wine library downloads and version checks still use `https://data.getwhisky.app/Wine/...`.
 - CLI commands include unfinished or commented-out paths for export/install/uninstall.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
