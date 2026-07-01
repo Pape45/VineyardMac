@@ -26,12 +26,8 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 
 ## Confirmed Cleanup
 
-- Release workflow still posts Whisky release URLs and updates the old Homebrew cask.
-- Funding, issue templates, Discord links, Help menu links, and Crowdin references still point to Whisky-era infrastructure.
 - Sparkle appcast is still `https://data.getwhisky.app/appcast.xml`.
 - Wine library downloads and version checks still use `https://data.getwhisky.app/Wine/...`.
-- `WhiskyKit/Package.swift` uses an SSH URL for `SemanticVersion`, while the Xcode workspace resolves it through HTTPS.
-- `Bundle.whiskyBundleIdentifier` still falls back to `com.isaacmarovitz.Whisky`.
 - CLI commands include unfinished or commented-out paths for export/install/uninstall.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
 - `Bottle`, `Program`, and `BottleVM` use `@unchecked Sendable`; treat this as concurrency debt.
@@ -52,11 +48,8 @@ The next local release should be boring:
 1. Stabilize project metadata.
    - Rename visible app metadata to VineyardMac.
    - Keep internal target names until the build is stable.
-   - Replace stale Help, Discord, Funding, and issue-template links.
 
 2. Fix build and CI basics.
-   - Change `WhiskyKit/Package.swift` package URL to HTTPS.
-   - Add a macOS GitHub Actions build for the `Whisky` scheme.
    - Keep Release distribution disabled or documented until Developer ID signing and notarization are ready.
 
 3. Separate VineyardMac runtime ownership.

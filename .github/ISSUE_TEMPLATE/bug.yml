@@ -27,25 +27,21 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: Please provide the logs from the launched Wine process. These can be found by pressing `CMD + L` in Whisky.
+      description: Please provide the logs from the launched Wine process. These can be found with `CMD + L` in VineyardMac.
       render: bash
     validations:
       required: true
-  - type: dropdown
-    id: whisky-version
+  - type: input
+    id: vineyardmac-version
     attributes:
-      label: What version of Whisky are you using?
-      options:
-        - "2.3.2"
-        - "<2.3.2"
+      label: VineyardMac version
+      description: Use the app version, commit, or branch you built from.
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: mac-version
     attributes:
-      label: What version of macOS are you using?
-      options:
-        - "Sonoma (macOS 14)"
+      label: macOS version
     validations:
       required: true
   - type: checkboxes

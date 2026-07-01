@@ -1,25 +1,39 @@
-# How to contribute
+# Contributing
 
-Thanks for your interest! First, make a fork of Whisky, make a new branch for your changes, and get coding!
+Thanks for helping with VineyardMac. This project is a continuation of Whisky, so keep attribution and GPL-3.0-or-later licensing intact.
 
-# Build environment
+## Build environment
 
-Whisky is built using Xcode 15 on macOS Sonoma. All external dependencies are handled through the Swift Package Manager.
+Use Xcode on macOS. External dependencies are handled through Swift Package Manager.
 
-# Code style
+Useful local checks:
 
-Every Whisky commit is automatically linted using SwiftLint. You can run these checks locally simply by building in Xcode, violations will appear as errors or warnings. For your pull request to be merged, you must meet all the requirements outlined by SwiftLint and have no violations.
+```bash
+swiftlint --strict
+xcodebuild -project Whisky.xcodeproj -scheme Whisky -configuration Debug build
+swift build --package-path WhiskyKit
+```
 
-Generally, it is not advised to disable a SwiftLint rule, but there are certain situations where it is necessary. Please use your discretion when disabling rules temporarily.
+If you do not have a signing identity for the app, use:
 
-SwiftLint does not fully check indentation, but we ask that you indent with 4-width spaces. This can be automatically configured in Xcode's settings.
+```bash
+xcodebuild -project Whisky.xcodeproj -scheme Whisky -configuration Debug CODE_SIGNING_ALLOWED=NO build
+```
 
-All added strings must be properly localised and added to the EN strings file. Do not add keys for other languages or translate within your PR. All translations should be handled on [Crowdin](https://crowdin.com/project/whisky).
+## Code style
 
-# Making your PR
+Every change must pass SwiftLint. Building in Xcode also runs SwiftLint unless `SWIFTLINT_SKIP=YES` is set.
 
-Please provide a detailed description of your changes in your PR. If your commits contain UI changes, we ask that you provide screenshots.
+Avoid disabling SwiftLint rules unless the alternative is worse.
 
-# Review
+Use 4-space indentation.
 
-Once your pull request passes CI SwiftLint checks and builds, it will be ready for review. You may receive feedback on code that should changed. Once you have received an approval, your code will be merged!
+Add user-facing strings to `Whisky/Localizable.xcstrings`. Do not translate other languages in regular code changes.
+
+## Pull requests
+
+Keep pull requests focused. Include screenshots for UI changes.
+
+Before opening a PR, run the relevant local checks and make sure GitHub Actions are green.
+
+For large changes, open an issue first so the direction can be agreed before code is written.
