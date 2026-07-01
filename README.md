@@ -1,81 +1,179 @@
-<div align="center">
+# VineyardMac
 
-  # Whisky 🥃 
-  *Wine but a bit stronger*
-  
-  ![](https://img.shields.io/github/actions/workflow/status/IsaacMarovitz/Whisky/SwiftLint.yml?style=for-the-badge)
-  [![](https://img.shields.io/discord/1115955071549702235?style=for-the-badge)](https://discord.gg/CsqAfs9CnM)
-</div>
+A modern macOS app for managing Wine bottles, running Windows applications, and improving compatibility workflows on Apple Silicon Macs.
 
-## Maintenance Notice
+VineyardMac started as an independent continuation of [Whisky](https://github.com/Whisky-App/Whisky), an open-source Wine wrapper for macOS built with SwiftUI.
 
-[Whisky is no longer actively maintained](https://docs.getwhisky.app/maintenance-notice). Apps and games may break at any time.
-
-<img width="650" alt="Config" src="https://github.com/Whisky-App/Whisky/assets/42140194/d0a405e8-76ee-48f0-92b5-165d184a576b">
-
-Familiar UI that integrates seamlessly with macOS
-
-<div align="right">
-  <img width="650" alt="New Bottle" src="https://github.com/Whisky-App/Whisky/assets/42140194/ed1a0d69-d8fb-442b-9330-6816ba8981ba">
-
-  One-click bottle creation and management
-</div>
-
-<img width="650" alt="debug" src="https://user-images.githubusercontent.com/42140194/229176642-57b80801-d29b-4123-b1c2-f3b31408ffc6.png">
-
-Debug and profile with ease
+This project is independently maintained and is not affiliated with the original Whisky project.
 
 ---
 
-Whisky provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Whisky is built on top of CrossOver 22.1.1, and Apple's own `Game Porting Toolkit`.
+## Status
 
-Translated on [Crowdin](https://crowdin.com/project/whisky).
+VineyardMac is currently in early development.
+
+The initial goal is to preserve the useful foundation of Whisky while modernizing the project, improving maintainability, and exploring new features around diagnostics, compatibility profiles, and AI-assisted troubleshooting.
+
+Expect breaking changes while the project is being renamed, cleaned up, and reorganized.
+
+---
+
+## Goals
+
+VineyardMac aims to provide:
+
+* A clean native macOS interface for Wine bottle management
+* Better diagnostics for failed Windows app and game launches
+* Improved compatibility workflows for Apple Silicon Macs
+* Easier management of Wine, DXVK, Metal-related components, and bottle settings
+* AI-assisted troubleshooting for logs, crashes, and configuration issues
+* A maintained, community-friendly continuation of the original Whisky concept
+
+---
+
+## Planned Roadmap
+
+### Short term
+
+* Rename visible app branding from Whisky to VineyardMac
+* Update documentation and setup instructions
+* Review build process on current macOS versions
+* Clean deprecated links and archived project references
+* Audit dependencies and bundled components
+* Preserve GPL-3.0 license compliance and attribution
+
+### Medium term
+
+* Improve bottle creation and management UX
+* Add better error reporting and diagnostics
+* Improve logs and crash explanations
+* Add compatibility profiles for common apps and games
+* Improve Wine component management
+* Review support for current versions of macOS
+
+### Long term
+
+* Add AI-assisted troubleshooting
+* Add guided fixes for common launch failures
+* Add community-maintained compatibility data
+* Improve developer tooling for contributors
+* Explore plugin-style compatibility helpers
 
 ---
 
 ## System Requirements
-- CPU: Apple Silicon (M-series chips)
-- OS: macOS Sonoma 14.0 or later
 
-## Homebrew
+VineyardMac is intended for modern Apple Silicon Macs.
 
-Whisky is on homebrew! Install with 
-`brew install --cask whisky`.
+Current baseline requirements are expected to follow the original Whisky project:
 
-## My game isn't working!
+* Apple Silicon Mac
+* macOS Sonoma 14.0 or later
 
-Some games need special steps to get working. Check out the [wiki](https://github.com/IsaacMarovitz/Whisky/wiki/Game-Support).
+These requirements may change as the project evolves.
+
+---
+
+## Building
+
+Build instructions are being reviewed and updated.
+
+For now, open the Xcode project in Xcode:
+
+```bash
+open Whisky.xcodeproj
+```
+
+The project still contains original Whisky naming internally while the transition to VineyardMac is in progress.
+
+A full rename of the Xcode project, targets, bundle identifiers, and app metadata will be handled carefully to avoid breaking the build.
+
+---
+
+## Attribution
+
+VineyardMac is based on Whisky by the Whisky-App contributors:
+
+https://github.com/Whisky-App/Whisky
+
+The original Whisky project is licensed under GPL-3.0.
+
+This project preserves the original license and copyright notices. Substantial changes made in this repository are part of VineyardMac and are maintained independently from the original Whisky project.
+
+Whisky is no longer actively maintained by its original maintainers. VineyardMac is a separate continuation and is not endorsed by, sponsored by, or affiliated with the original Whisky project or its maintainers.
+
+---
+
+## License
+
+VineyardMac is licensed under the GNU General Public License v3.0.
+
+See [`LICENSE`](LICENSE) for the full license text.
+
+Because this project is based on GPL-3.0 software, redistributed modified versions must also comply with the GPL-3.0 license terms.
 
 ---
 
 ## Credits & Acknowledgments
 
-Whisky is possible thanks to the magic of several projects:
+VineyardMac exists because of the work done by the original Whisky contributors and the broader Wine/macOS compatibility ecosystem.
 
-- [msync](https://github.com/marzent/wine-msync) by marzent
-- [DXVK-macOS](https://github.com/Gcenx/DXVK-macOS) by Gcenx and doitsujin
-- [MoltenVK](https://github.com/KhronosGroup/MoltenVK) by KhronosGroup
-- [Sparkle](https://github.com/sparkle-project/Sparkle) by sparkle-project
-- [SemanticVersion](https://github.com/SwiftPackageIndex/SemanticVersion) by SwiftPackageIndex
-- [swift-argument-parser](https://github.com/apple/swift-argument-parser) by Apple
-- [SwiftTextTable](https://github.com/scottrhoyt/SwiftyTextTable) by scottrhoyt
-- [CrossOver 22.1.1](https://www.codeweavers.com/crossover) by CodeWeavers and WineHQ
-- D3DMetal by Apple
+Special thanks to the original Whisky project and its contributors.
 
-Special thanks to Gcenx, ohaiibuzzle, and Nat Brown for their support and contributions!
+The original Whisky project also credited several important projects and technologies, including:
+
+* Wine
+* CrossOver
+* Apple's Game Porting Toolkit
+* DXVK-macOS
+* MoltenVK
+* Sparkle
+* SwiftUI
+* Other open-source dependencies used by the original project
+
+Attribution for upstream projects will be preserved and expanded as the codebase is reviewed.
 
 ---
 
-<table>
-  <tr>
-    <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="./images/cw-dark.png">
-          <img src="./images/cw-light.png" width="500">
-        </picture>
-    </td>
-    <td>
-        Whisky doesn't exist without CrossOver. Support the work of CodeWeavers using our <a href="https://www.codeweavers.com/store?ad=1010">affiliate link</a>.
-    </td>
-  </tr>
-</table>
+## Disclaimer
+
+VineyardMac is an independent open-source project.
+
+It is not affiliated with Apple, CodeWeavers, WineHQ, the original Whisky maintainers, or any commercial compatibility product.
+
+Windows application and game compatibility can vary significantly depending on macOS version, hardware, Wine version, graphics stack, and application-specific behavior.
+
+---
+
+## Contributing
+
+Contribution guidelines are not finalized yet.
+
+Planned contribution areas include:
+
+* Build fixes
+* Documentation updates
+* macOS compatibility testing
+* Bottle management improvements
+* UI/UX improvements
+* Wine configuration fixes
+* Compatibility profiles
+* Log parsing and diagnostics
+* AI-assisted troubleshooting workflows
+
+Before opening large pull requests, please open an issue or discussion explaining the proposed change.
+
+---
+
+## Project Direction
+
+VineyardMac is not intended to be a simple rebrand.
+
+The project direction is to become a maintained, modern, developer-friendly Wine management app for macOS with better diagnostics, better user guidance, and eventually AI-assisted support features.
+
+The first phase is stabilization and cleanup.
+
+The second phase is modernization.
+
+The third phase is new functionality.
+
