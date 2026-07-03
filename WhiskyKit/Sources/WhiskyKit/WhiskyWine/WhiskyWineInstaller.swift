@@ -37,12 +37,10 @@ public class WhiskyWineInstaller {
 
     public static func install(from: URL) {
         do {
-            if !FileManager.default.fileExists(atPath: applicationFolder.path) {
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
-            } else {
-                // Recreate it
-                try FileManager.default.removeItem(at: applicationFolder)
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
+
+            if FileManager.default.fileExists(atPath: libraryFolder.path) {
+                try FileManager.default.removeItem(at: libraryFolder)
             }
 
             try Tar.untar(tarBall: from, toURL: applicationFolder)
