@@ -21,7 +21,7 @@ This document tracks the practical work needed to turn the archived Whisky codeb
   - `com.pape45.VineyardMac.Cmd`
   - `com.pape45.VineyardMac.Thumbnail`
 - The product, targets, schemes, many comments, localization strings, and user-facing copy still use Whisky names.
-- GitHub Actions contain macOS build and SwiftLint workflows, but neither has a recorded run yet.
+- GitHub Actions verify the macOS build and SwiftLint.
 - There are no test targets.
 
 ## Confirmed Cleanup
