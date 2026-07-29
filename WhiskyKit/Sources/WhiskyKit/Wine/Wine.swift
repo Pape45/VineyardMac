@@ -208,10 +208,8 @@ public class Wine {
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
-    public static func killBottle(bottle: Bottle) throws {
-        Task.detached(priority: .userInitiated) {
-            try await runWineserver(["-k"], bottle: bottle)
-        }
+    public static func killBottle(bottle: Bottle) async throws {
+        _ = try await runWineserver(["-k"], bottle: bottle)
     }
 
     public static func enableDXVK(bottle: Bottle) throws {
