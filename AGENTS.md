@@ -68,11 +68,12 @@ Useful package-level check:
 swift build --package-path WhiskyKit
 ```
 
-Known validation blockers observed on 2026-07-01:
+Validation baseline observed on 2026-07-29:
 
-- `xcodebuild` is present, but the active developer directory is Command Line Tools, not full Xcode. The maintainer must switch/install Xcode before Xcode builds can run.
-- `swiftlint` is not installed on this machine. The Xcode build phase fails if `swiftlint` is missing.
-- `WhiskyKit/Package.swift` currently references `SemanticVersion` via `git@github.com:SwiftPackageIndex/SemanticVersion.git`, while the Xcode workspace resolved file uses HTTPS. `swift build --package-path WhiskyKit` fails without GitHub SSH access. Ask before changing the package URL to HTTPS.
+- Xcode 27.0 beta 4 is selected through `xcode-select` and the signed Debug build passes.
+- `swiftlint --strict` passes locally.
+- `swift build --package-path WhiskyKit` passes with Swift 6.4.
+- `WhiskyKit/Package.swift` and the Xcode workspace both use HTTPS for `SemanticVersion`.
 
 When validation cannot run, say exactly which command failed and why. Do not claim a build passed unless it actually ran successfully.
 
