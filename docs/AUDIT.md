@@ -1,6 +1,6 @@
 # VineyardMac Audit
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 This document tracks the practical work needed to turn the archived Whisky codebase into VineyardMac. It is not a promise of features. It is a checklist for keeping changes small, reviewable, and safe for contributors.
 
@@ -28,6 +28,7 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 
 - Wine library downloads and version checks use `https://data.vineyardmac.app/Wine/...`.
 - Wine installation preserves the app's Application Support directory while replacing the managed runtime.
+- Git history no longer embeds the retired `Whisky/Libraries/Wine` runtime payload.
 - CLI commands include unfinished or commented-out paths for export/install/uninstall.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
 - `Bottle`, `Program`, and `BottleVM` use `@unchecked Sendable`; treat this as concurrency debt.

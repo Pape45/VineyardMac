@@ -16,6 +16,8 @@ The initial goal is to preserve the useful foundation of Whisky while modernizin
 
 Expect breaking changes while the project is being renamed, cleaned up, and reorganized.
 
+There are no official VineyardMac binary releases yet. Testers and contributors currently build the app from source.
+
 ---
 
 ## Goals
@@ -63,9 +65,7 @@ VineyardMac aims to provide:
 
 ## System Requirements
 
-VineyardMac is intended for modern Apple Silicon Macs.
-
-Current baseline requirements are expected to follow the original Whisky project:
+VineyardMac currently targets:
 
 * Apple Silicon Mac
 * macOS Sonoma 14.0 or later
@@ -76,12 +76,18 @@ These requirements may change as the project evolves.
 
 ## Building
 
-Build instructions are being reviewed and updated.
-
-For now, open the Xcode project in Xcode:
+Install Xcode and SwiftLint, then open the project:
 
 ```bash
 open Whisky.xcodeproj
+```
+
+To validate a contribution from the command line:
+
+```bash
+xcodebuild -project Whisky.xcodeproj -scheme Whisky -configuration Debug CODE_SIGNING_ALLOWED=NO build
+swift build --package-path WhiskyKit
+swiftlint --strict
 ```
 
 The project still contains original Whisky naming internally while the transition to VineyardMac is in progress.
@@ -147,7 +153,7 @@ Windows application and game compatibility can vary significantly depending on m
 
 ## Contributing
 
-Contribution guidelines are not finalized yet.
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
 Planned contribution areas include:
 
@@ -161,7 +167,7 @@ Planned contribution areas include:
 * Log parsing and diagnostics
 * AI-assisted troubleshooting workflows
 
-Before opening large pull requests, please open an issue or discussion explaining the proposed change.
+Use [issues](https://github.com/Pape45/VineyardMac/issues) for reproducible bugs and [discussions](https://github.com/Pape45/VineyardMac/discussions) for questions or larger proposals.
 
 ---
 
@@ -176,4 +182,3 @@ The first phase is stabilization and cleanup.
 The second phase is modernization.
 
 The third phase is new functionality.
-
