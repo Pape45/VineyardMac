@@ -160,11 +160,11 @@ Prefer adding diagnostics that explain failures to users over silent `print` cal
 
 ## Dependency And Release Notes
 
-- Xcode workspace dependencies include Sparkle, SemanticVersion, swift-argument-parser, SwiftyTextTable, and Progress.swift.
+- Xcode workspace dependencies include SemanticVersion, swift-argument-parser, and SwiftyTextTable.
 - `WhiskyKit/Package.swift` separately declares SemanticVersion.
 - `.github/workflows/SwiftLint.yml` still runs SwiftLint on Ubuntu.
 - No VineyardMac release workflow is configured. Do not restore the original Whisky release or Homebrew automation without an intentional release plan.
-- Sparkle appcast and help links still reference original Whisky infrastructure in several places.
+- Help links and other user-facing references may still point to original Whisky infrastructure.
 
 ## Agent Workflow
 

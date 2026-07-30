@@ -158,18 +158,8 @@ struct WhiskyApp: App {
             return
         }
         getconf.waitUntilExit()
-        let getconfOutput = {() -> Data in
-            if #available(macOS 10.15, *) {
-                do {
-                    return try pipe.fileHandleForReading.readToEnd() ?? Data()
-                } catch {
-                    return Data()
-                }
-            } else {
-                return pipe.fileHandleForReading.readDataToEndOfFile()
-            }
-        }()
-        guard let getconfOutputString = String(data: getconfOutput, encoding: .utf8) else {return}
+        guard let getconfOutput = try? pipe.fileHandleForReading.readToEnd(),
+              let getconfOutputString = String(data: getconfOutput, encoding: .utf8) else { return }
         let d3dmPath = URL(fileURLWithPath: getconfOutputString.trimmingCharacters(in: .whitespacesAndNewlines))
             .appending(path: "d3dm").path
         do {

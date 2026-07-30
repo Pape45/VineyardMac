@@ -19,7 +19,6 @@
 import Foundation
 import WhiskyKit
 import SwiftyTextTable
-import Progress
 import SemanticVersion
 import ArgumentParser
 
@@ -30,13 +29,10 @@ struct Whisky: ParsableCommand {
         subcommands: [List.self,
                       Create.self,
                       Add.self,
-//                      Export.self,
                       Delete.self,
                       Remove.self,
                       Run.self,
-                      Shellenv.self
-                      /*Install.self,
-                      Uninstall.self*/])
+                      Shellenv.self])
 }
 
 extension Whisky {
@@ -77,8 +73,6 @@ extension Whisky {
                 // Should allow customisation
                 bottle.settings.windowsVersion = .win10
                 bottle.settings.name = name
-//                try await Wine.changeWinVersion(bottle: bottle, win: winVersion)
-//                let wineVer = try await Wine.wineVersion()
                 bottle.settings.wineVersion = SemanticVersion(0, 0, 0)
 
                 var bottlesList = BottleData()
@@ -102,14 +96,6 @@ extension Whisky {
             var bottlesList = BottleData()
             bottlesList.paths.append(bottleURL)
             print("Bottle \"\(settings.name)\" added.")
-        }
-    }
-
-    struct Export: ParsableCommand {
-        static let configuration = CommandConfiguration(abstract: "Export an existing bottle.")
-
-        mutating func run() throws {
-//            print("Create a bottle")
         }
     }
 
@@ -198,21 +184,4 @@ extension Whisky {
         }
     }
 
-    struct Install: ParsableCommand {
-        static let configuration = CommandConfiguration(abstract: "Install WhiskyWine.")
-
-        mutating func run() throws {
-
-        }
-    }
-
-    struct Uninstall: ParsableCommand {
-        static let configuration = CommandConfiguration(abstract: "Uninstall WhiskyWine.")
-
-        @Flag(name: [.long, .short], help: "Uninstall WhiskyWine") var whiskyWine = false
-
-        mutating func run() throws {
-
-        }
-    }
 }

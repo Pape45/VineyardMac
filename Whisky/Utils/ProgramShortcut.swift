@@ -22,7 +22,7 @@ import QuickLookThumbnailing
 import WhiskyKit
 
 class ProgramShortcut {
-    public static func createShortcut(_ program: Program, app: URL, name: String) async {
+    public static func createShortcut(_ program: Program, app: URL) async {
         let contents = app.appending(path: "Contents")
         let macos = contents.appending(path: "MacOS")
         do {
