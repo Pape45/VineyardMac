@@ -23,7 +23,7 @@ import SemanticVersion
 public class WhiskyWineInstaller {
     private static let releaseURL = URL(
         string: "https://data.vineyardmac.app/Wine/WhiskyWineVersion.plist"
-    )!
+    )
 
     /// The Whisky application folder
     public static let applicationFolder = FileManager.default.urls(
@@ -102,6 +102,9 @@ public class WhiskyWineInstaller {
     }
 
     public static func whiskyWineRelease() async throws -> WhiskyWineRelease {
+        guard let releaseURL else {
+            throw WhiskyWineInstallerError.invalidRelease
+        }
         let (data, response) = try await URLSession(configuration: .ephemeral).data(from: releaseURL)
         guard let response = response as? HTTPURLResponse, 200..<300 ~= response.statusCode else {
             throw WhiskyWineInstallerError.releaseUnavailable
