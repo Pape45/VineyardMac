@@ -21,7 +21,9 @@ import WhiskyKit
 
 struct WhiskyWineInstallView: View {
     @State var installing: Bool = true
+    @State var errorMessage: String?
     @Binding var tarLocation: URL
+    @Binding var runtimeRelease: WhiskyWineRelease?
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
 
@@ -35,7 +37,22 @@ struct WhiskyWineInstallView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if installing {
+                if let errorMessage {
+                    VStack {
+                        Image(systemName: "xmark.circle")
+                            .resizable()
+                            .frame(width: 60, height: 60)
+                            .foregroundStyle(.red)
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .multilineTextAlignment(.center)
+                        Button("setup.retry") {
+                            try? FileManager.default.removeItem(at: tarLocation)
+                            runtimeRelease = nil
+                            path.removeLast()
+                        }
+                    }
+                } else if installing {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .frame(width: 80)
@@ -51,13 +68,34 @@ struct WhiskyWineInstallView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
-            Task.detached {
-                await WhiskyWineInstaller.install(from: tarLocation)
+            install()
+        }
+    }
+
+    func install() {
+        installing = true
+        errorMessage = nil
+
+        guard let release = runtimeRelease else {
+            installing = false
+            errorMessage = WhiskyWineInstallerError.invalidRelease.localizedDescription
+            return
+        }
+        let archive = tarLocation
+
+        Task.detached {
+            do {
+                try WhiskyWineInstaller.install(from: archive, release: release)
                 await MainActor.run {
                     installing = false
                 }
-                sleep(2)
+                try await Task.sleep(for: .seconds(2))
                 await proceed()
+            } catch {
+                await MainActor.run {
+                    installing = false
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }

@@ -22,12 +22,14 @@ This document tracks the practical work needed to turn the archived Whisky codeb
   - `com.pape45.VineyardMac.Thumbnail`
 - The product, targets, schemes, many comments, localization strings, and user-facing copy still use Whisky names.
 - GitHub Actions verify the macOS build and SwiftLint.
-- There are no test targets.
+- WhiskyKit has focused tests for runtime hashing, validation, and replacement.
 
 ## Confirmed Cleanup
 
 - Wine library downloads and version checks use `https://data.vineyardmac.app/Wine/...`.
 - Wine installation preserves the app's Application Support directory while replacing the managed runtime.
+- Runtime downloads are checked against release metadata and installed through a validated staging directory.
+- Runtime `4.0.0-beta.2` uses Gcenx Game Porting Toolkit 3.0-3, keeps DXVK support, and includes its component manifest and licenses.
 - Git history no longer embeds the retired `Whisky/Libraries/Wine` runtime payload.
 - Unfinished CLI export/install/uninstall stubs and the unused Progress.swift dependency have been removed.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
@@ -55,7 +57,7 @@ The next local release should be boring:
 
 3. Separate VineyardMac runtime ownership.
    - Decide whether `WhiskyWine` remains the runtime name or becomes a VineyardMac-managed Wine package.
-   - Validate the VineyardMac-hosted Wine payload before shipping builds to other users.
+   - Keep the runtime manifest, source hashes, licenses, and release checksum current.
    - Document where Wine libraries, bottles, and logs live.
 
 4. Improve diagnostics before UI redesign.

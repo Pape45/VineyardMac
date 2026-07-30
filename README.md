@@ -92,6 +92,8 @@ swiftlint --strict
 
 The project still contains original Whisky naming internally while the transition to VineyardMac is in progress.
 
+Runtime composition, source hashes, licenses, and rebuild instructions are documented in [`docs/RUNTIME.md`](docs/RUNTIME.md).
+
 A full rename of the Xcode project, targets, bundle identifiers, and app metadata will be handled carefully to avoid breaking the build.
 
 ---

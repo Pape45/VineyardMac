@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "runtimeVersion": "4.0.0-beta.2",
+  "minimumMacOSVersion": "14.0",
+  "components": [
+    {
+      "name": "Wine",
+      "version": "7.7 (Gcenx Game Porting Toolkit 3.0-3)",
+      "sourceURL": "https://github.com/Gcenx/game-porting-toolkit/releases/tag/Game-Porting-Toolkit-3.0-3"
+    },
+    {
+      "name": "D3DMetal",
+      "version": "3.0",
+      "sourceURL": "https://github.com/Gcenx/game-porting-toolkit/releases/tag/Game-Porting-Toolkit-3.0-3"
+    },
+    {
+      "name": "Wine macOS Vulkan driver",
+      "version": "32ff36ff90a5ff10b7ee860aaa65d8b0808e9207",
+      "sourceURL": "https://github.com/Pape45/VineyardMac-Wine/commit/32ff36ff90a5ff10b7ee860aaa65d8b0808e9207"
+    },
+    {
+      "name": "DXVK-macOS",
+      "version": "1.10.3-20230507-async",
+      "sourceURL": "https://github.com/Gcenx/DXVK-macOS/releases/tag/v1.10.3-20230507"
+    },
+    {
+      "name": "MoltenVK",
+      "version": "1.4.2",
+      "sourceURL": "https://github.com/KhronosGroup/MoltenVK/releases/tag/v1.4.2"
+    },
+    {
+      "name": "GStreamer",
+      "version": "1.28.1.1",
+      "sourceURL": "https://github.com/Gcenx/game-porting-toolkit/releases/tag/Game-Porting-Toolkit-3.0-3"
+    },
+    {
+      "name": "Winetricks",
+      "version": "20260125",
+      "sourceURL": "https://github.com/Winetricks/winetricks/releases/tag/20260125"
+    }
+  ],
+  "sources": {
+    "gcenxRuntime": {
+      "fileName": "game-porting-toolkit-3.0-3.tar.xz",
+      "url": "https://github.com/Gcenx/game-porting-toolkit/releases/download/Game-Porting-Toolkit-3.0-3/game-porting-toolkit-3.0-3.tar.xz",
+      "sha256": "d377683937340f914823dbb2e1252b329cbf834ff58907d0293db8cebf0e392e"
+    },
+    "vulkanDriver": {
+      "fileName": "Libraries-4.0.0-beta.1.tar.gz",
+      "url": "https://data.vineyardmac.app/Wine/archive/Libraries-4.0.0-beta.1.tar.gz",
+      "sha256": "a1e92f8a03d54c84cb668e64c3a720ed8d1bb328846a684e65efbbbb87d4fc75",
+      "x86_64SHA256": "e5ffa52063603d98e2cc3f8ea86fc53555df8343ef787d851051981d0e57662d",
+      "x86_32on64SHA256": "d61fb4d938b15a35aabb2be6f75ce15dc1e0848fe19ee74202b9c68c280eb091"
+    },
+    "dxvk": {
+      "fileName": "dxvk-macOS-async-v1.10.3-20230507.tar.gz",
+      "url": "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507/dxvk-macOS-async-v1.10.3-20230507.tar.gz",
+      "sha256": "f67d99d0a8eeedd7d406b283a3df9f939b5965acb00efcb33d0c6235c195a516"
+    },
+    "moltenVK": {
+      "fileName": "MoltenVK-macos-1.4.2.tar",
+      "url": "https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.2/MoltenVK-macos.tar",
+      "sha256": "f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e"
+    },
+    "winetricks": {
+      "fileName": "winetricks-20260125.tar.gz",
+      "url": "https://github.com/Winetricks/winetricks/archive/refs/tags/20260125.tar.gz",
+      "sha256": "2890bd9fbbade4638e58b4999a237273192df03b58516ae7b8771e09c22d2f56"
+    },
+    "appleLicense": {
+      "fileName": "Gcenx-GPTK-3-License.pdf",
+      "url": "https://github.com/user-attachments/files/23971305/License.pdf",
+      "sha256": "b099088947b67c1707de9b8e8f8dd5e03a4af8048451e455b9044553beeabcf8"
+    }
+  }
+}
