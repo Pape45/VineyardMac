@@ -99,11 +99,13 @@ struct WhiskyApp: App {
     }
 
     static func killBottles() {
-        for bottle in BottleVM.shared.bottles {
-            do {
-                try Wine.killBottle(bottle: bottle)
-            } catch {
-                print("Failed to kill bottle: \(error)")
+        Task {
+            for bottle in BottleVM.shared.bottles {
+                do {
+                    try await Wine.killBottle(bottle: bottle)
+                } catch {
+                    print("Failed to kill bottle: \(error)")
+                }
             }
         }
     }

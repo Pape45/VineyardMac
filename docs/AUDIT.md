@@ -1,6 +1,6 @@
 # VineyardMac Audit
 
-Last updated: 2026-07-01
+Last updated: 2026-07-29
 
 This document tracks the practical work needed to turn the archived Whisky codebase into VineyardMac. It is not a promise of features. It is a checklist for keeping changes small, reviewable, and safe for contributors.
 
@@ -14,19 +14,20 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 
 ## Current Baseline
 
-- The app builds from `Whisky.xcodeproj` with Xcode 26.6.
+- The app builds from `Whisky.xcodeproj` with Xcode 27.0 beta 4.
 - `swiftlint --strict` passes locally.
 - Debug builds now use `Apple Development` signing with VineyardMac bundle identifiers:
   - `com.pape45.VineyardMac`
   - `com.pape45.VineyardMac.Cmd`
   - `com.pape45.VineyardMac.Thumbnail`
 - The product, targets, schemes, many comments, localization strings, and user-facing copy still use Whisky names.
-- GitHub Actions currently run SwiftLint only.
+- GitHub Actions verify the macOS build and SwiftLint.
 - There are no test targets.
 
 ## Confirmed Cleanup
 
-- Wine library downloads and version checks still use `https://data.getwhisky.app/Wine/...`.
+- Wine library downloads and version checks use `https://data.vineyardmac.app/Wine/...`.
+- Wine installation preserves the app's Application Support directory while replacing the managed runtime.
 - CLI commands include unfinished or commented-out paths for export/install/uninstall.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
 - `Bottle`, `Program`, and `BottleVM` use `@unchecked Sendable`; treat this as concurrency debt.
@@ -53,7 +54,7 @@ The next local release should be boring:
 
 3. Separate VineyardMac runtime ownership.
    - Decide whether `WhiskyWine` remains the runtime name or becomes a VineyardMac-managed Wine package.
-   - Stop relying on `data.getwhisky.app` before shipping builds to other users.
+   - Validate the VineyardMac-hosted Wine payload before shipping builds to other users.
    - Document where Wine libraries, bottles, and logs live.
 
 4. Improve diagnostics before UI redesign.
