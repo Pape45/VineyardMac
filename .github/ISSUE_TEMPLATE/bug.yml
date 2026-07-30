@@ -1,5 +1,8 @@
 name: Bug Report
 description: Report a bug.
+title: "[Bug]: "
+labels:
+  - bug
 type: "Bug"
 body:
   - type: textarea
@@ -20,7 +23,7 @@ body:
     id: expected-behaviour
     attributes:
       label: Expected behaviour
-      description: Please provide a clear a detailed description of what you expected to happen.
+      description: Please provide a clear and detailed description of what you expected to happen.
     validations:
       required: true
   - type: textarea
@@ -44,10 +47,30 @@ body:
       label: macOS version
     validations:
       required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac model and chip
+      description: For example, MacBook Pro with M4 Pro.
+    validations:
+      required: true
+  - type: input
+    id: wine-version
+    attributes:
+      label: Wine version
+    validations:
+      required: true
+  - type: textarea
+    id: bottle-settings
+    attributes:
+      label: Bottle configuration
+      description: Include the Windows version, enhanced sync mode, DXVK and Metal settings, and any custom arguments or environment variables.
+    validations:
+      required: true
   - type: checkboxes
     attributes:
       label: Issue Language
       description: All issues must be written in clear plain English so that all devs are able to read them.
       options:
-        - label: Yes my issue is written in English
+        - label: My issue is written in English.
           required: true

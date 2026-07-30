@@ -4,7 +4,7 @@ Thanks for helping with VineyardMac. This project is a continuation of Whisky, s
 
 ## Build environment
 
-Use Xcode on macOS. External dependencies are handled through Swift Package Manager.
+Use an Apple Silicon Mac running macOS 14 or later. Install Xcode and SwiftLint; external project dependencies are handled through Swift Package Manager.
 
 Useful local checks:
 
@@ -32,8 +32,10 @@ Add user-facing strings to `Whisky/Localizable.xcstrings`. Do not translate othe
 
 ## Pull requests
 
-Keep pull requests focused. Include screenshots for UI changes.
+Create a branch from `main` and keep each pull request focused. Include screenshots for UI changes and describe the manual testing you performed.
 
-Before opening a PR, run the relevant local checks and make sure GitHub Actions are green.
+Before opening a PR, run the relevant local checks. After pushing, wait for the Build and SwiftLint checks to pass.
 
-For large changes, open an issue first so the direction can be agreed before code is written.
+For large changes, open a [discussion](https://github.com/Pape45/VineyardMac/discussions) first so the direction can be agreed before code is written. Use the issue forms for reproducible bugs and focused feature requests.
+
+Do not combine a broad Whisky-to-VineyardMac rename with unrelated work. Changes to signing, bundle identifiers, update feeds, or user data paths require an explicit migration plan.

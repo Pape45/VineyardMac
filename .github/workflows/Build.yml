@@ -3,7 +3,12 @@ name: Build
 on:
   pull_request:
   push:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: build-${{ github.ref }}
@@ -13,7 +18,7 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Xcode version
         run: xcodebuild -version
       - name: Build
