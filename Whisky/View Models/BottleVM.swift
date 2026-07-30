@@ -33,10 +33,6 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
         bottles = bottlesList.loadBottles()
     }
 
-    func countActive() -> Int {
-        return bottles.filter { $0.isAvailable == true }.count
-    }
-
     func createNewBottle(bottleName: String, winVersion: WinVersion, bottleURL: URL) -> URL {
         let newBottleDir = bottleURL.appending(path: UUID().uuidString)
 

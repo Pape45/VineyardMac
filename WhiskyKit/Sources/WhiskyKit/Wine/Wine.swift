@@ -258,9 +258,7 @@ enum WineInterfaceError: Error {
 }
 
 enum RegistryType: String {
-    case binary = "REG_BINARY"
     case dword = "REG_DWORD"
-    case qword = "REG_QWORD"
     case string = "REG_SZ"
 }
 

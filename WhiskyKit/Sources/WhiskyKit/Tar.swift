@@ -22,44 +22,28 @@ public class Tar {
     static let tarBinary: URL = URL(fileURLWithPath: "/usr/bin/tar")
 
     public static func tar(folder: URL, toURL: URL) throws {
-        let process = Process()
-        let pipe = Pipe()
-
-        process.executableURL = tarBinary
-        process.arguments = ["-zcf", "\(toURL.path)", "\(folder.path)"]
-        process.standardOutput = pipe
-        process.standardError = pipe
-
-        try process.run()
-
-        if let output = try pipe.fileHandleForReading.readToEnd() {
-            let outputString = String(data: output, encoding: .utf8) ?? String()
-            process.waitUntilExit()
-            let status = process.terminationStatus
-            if status != 0 {
-                throw outputString
-            }
-        }
+        try run(arguments: ["-zcf", toURL.path, folder.path])
     }
 
     public static func untar(tarBall: URL, toURL: URL) throws {
+        try run(arguments: ["-xzf", tarBall.path, "-C", toURL.path])
+    }
+
+    private static func run(arguments: [String]) throws {
         let process = Process()
         let pipe = Pipe()
 
         process.executableURL = tarBinary
-        process.arguments = ["-xzf", "\(tarBall.path)", "-C", "\(toURL.path)"]
+        process.arguments = arguments
         process.standardOutput = pipe
         process.standardError = pipe
 
         try process.run()
+        let output = try pipe.fileHandleForReading.readToEnd() ?? Data()
+        process.waitUntilExit()
 
-        if let output = try pipe.fileHandleForReading.readToEnd() {
-            let outputString = String(data: output, encoding: .utf8) ?? String()
-            process.waitUntilExit()
-            let status = process.terminationStatus
-            if status != 0 {
-                throw outputString
-            }
+        if process.terminationStatus != 0 {
+            throw String(data: output, encoding: .utf8) ?? String()
         }
     }
 }

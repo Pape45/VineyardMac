@@ -30,7 +30,6 @@ struct ContentView: View {
     @State private var selected: URL?
     @State private var showBottleCreation: Bool = false
     @State private var bottlesLoaded: Bool = false
-    @State private var showBottleSelection: Bool = false
     @State private var newlyCreatedBottleURL: URL?
     @State private var openedFileURL: URL?
     @State private var triggerRefresh: Bool = false
@@ -94,7 +93,7 @@ struct ContentView: View {
             bottleVM.loadBottles()
             bottlesLoaded = true
 
-            if !bottleVM.bottles.isEmpty || bottleVM.countActive() != 0 {
+            if !bottleVM.bottles.isEmpty {
                 if let bottle = bottleVM.bottles.first(where: { $0.url == selectedBottleURL && $0.isAvailable }) {
                     selected = bottle.url
                 } else {
@@ -177,7 +176,7 @@ struct ContentView: View {
                     .id(bottle.url)
             }
         } else {
-            if (bottleVM.bottles.isEmpty || bottleVM.countActive() == 0) && bottlesLoaded {
+            if !bottleVM.bottles.contains(where: \.isAvailable) && bottlesLoaded {
                 VStack {
                     Text("main.createFirst")
                     Button {
