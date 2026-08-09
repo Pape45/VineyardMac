@@ -64,13 +64,14 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
-The branch contains five focused commits after `main`:
+The branch contains six focused commits after `main`:
 
 - verified Gcenx runtime installation and tests;
 - safe handling for a missing runtime release URL;
 - refreshed stable-toolchain and GPTK status documentation;
 - maintainer handover documentation;
-- safe in-app runtime update routing without pre-download uninstall.
+- safe in-app runtime update routing without pre-download uninstall;
+- coherent immutable runtime metadata with a documented legacy path and rollback.
 
 Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
@@ -121,16 +122,22 @@ The complete immutable artifact was built, smoke-tested, uploaded, and downloade
 
 Public access on this download bucket is intentional. Production safety comes from immutable versioned keys, release metadata, SHA-256 verification, runtime validation, and publishing the release pointer last.
 
+`scripts/build-runtime.sh` keeps the generated archive name `Libraries.tar.gz` for local output and the mutable legacy upload, but writes the matching immutable `Wine/archive/Libraries-<version>.tar.gz` URL into `WhiskyWineVersion.plist`.
+
 The current public `Wine/WhiskyWineVersion.plist` still describes the old `4.0.0-beta.1` runtime and lacks the complete beta.2 metadata. The mutable `Wine/Libraries.tar.gz` is also the old beta.1 archive. The branch's stricter installer therefore rejects current first-run setup with a missing-data error. This is not evidence that Cloudflare is blocking the request.
 
 Safe activation order after PR #4 is approved and merged:
 
-1. Recheck the immutable beta.2 artifact's status, size, and SHA-256.
-2. Prepare the complete release plist pointing directly to the immutable beta.2 URL.
-3. Upload the matching root `RuntimeManifest.json` if the public copy is missing or stale.
-4. Upload `WhiskyWineVersion.plist` last because clients treat it as the release pointer.
-5. Remove the local app/runtime state and perform a genuinely fresh graphical setup test.
-6. Create a new bottle and launch `winecfg` or the DirectX smoke executable before considering the runtime active.
+1. Prepare the complete release plist pointing directly to the immutable beta.2 URL.
+2. Before activation, verify its version, URL, and SHA-256 against the archive; extract the archive, validate its required files, embedded version, and manifest, and run the disposable-prefix smoke tests.
+3. Recheck the immutable beta.2 object's status, size, and SHA-256.
+4. Preserve the previous release plist and mutable archive for rollback.
+5. Upload the validated bytes to mutable `Wine/Libraries.tar.gz` for older clients and verify its SHA-256.
+6. Upload the matching root `RuntimeManifest.json` if the public copy is missing or stale.
+7. Upload `WhiskyWineVersion.plist` last because current clients treat it as the release pointer.
+8. Immediately remove the local app/runtime state, perform a genuinely fresh graphical setup test, create a bottle, and launch `winecfg` or the DirectX smoke executable before considering the runtime active.
+
+If the immediate acceptance test fails, restore the previous `WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz`, verify both remote objects, and repeat the fresh setup test. Keep the failed immutable beta.2 object unchanged for diagnosis.
 
 Do not rebuild beta.2 merely because the local source downloads are absent. The immutable uploaded artifact already exists and was verified.
 

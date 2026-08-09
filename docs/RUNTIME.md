@@ -29,13 +29,17 @@ scripts/build-runtime.sh \
 
 The script verifies every source hash, copies the Gcenx runtime without rebuilding Wine, restores the two VineyardMac Wine driver modules needed by DXVK, adds the pinned DXVK, MoltenVK, and Winetricks releases, preserves their licenses, and writes:
 
-- `Libraries.tar.gz`;
-- `WhiskyWineVersion.plist` with the archive URL and SHA-256;
+- `Libraries.tar.gz`, the local archive also uploaded to the mutable path used by older clients;
+- `WhiskyWineVersion.plist` with the SHA-256 and immutable `Wine/archive/Libraries-<version>.tar.gz` URL;
 - `RuntimeManifest.json`.
 
 ## Publishing
 
-Archive every build under its versioned `Wine/archive/` key before updating the current download. Upload the current archive first and confirm its remote SHA-256, then upload `RuntimeManifest.json`. Upload `WhiskyWineVersion.plist` last because clients treat it as the release pointer.
+Before activation, verify that the generated plist version, immutable URL, and SHA-256 match the local archive. Extract that archive, validate its required files, embedded version, and manifest, then run the smoke tests below with a disposable prefix.
+
+Keep the previous release plist and mutable archive available for rollback. Publish the validated `Libraries.tar.gz` bytes under the immutable `Wine/archive/Libraries-<version>.tar.gz` key and confirm the remote size and SHA-256. Upload the same bytes to mutable `Wine/Libraries.tar.gz` for older clients, then upload `RuntimeManifest.json`. Upload `WhiskyWineVersion.plist` last because current clients treat it as the release pointer.
+
+Immediately after publishing the pointer, perform a fresh setup, create a bottle, and launch `winecfg` or the DirectX smoke executable. If that acceptance test fails, restore the previous `WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz`, verify both remote objects, and repeat the fresh setup test. Keep the failed immutable archive unchanged for diagnosis; immutable keys are never overwritten during rollback.
 
 The app verifies the archive SHA-256, its required files, the internal manifest, and the embedded version before replacing an installed runtime. Installation occurs in a staging directory and keeps the previous runtime until validation succeeds.
 

@@ -138,7 +138,7 @@ cp -p "$manifest" "$output_directory/RuntimeManifest.json"
 release_plist="$output_directory/WhiskyWineVersion.plist"
 cp -p "$version_plist" "$release_plist"
 plutil -insert archiveURL -string \
-    'https://data.vineyardmac.app/Wine/Libraries.tar.gz' \
+    "https://data.vineyardmac.app/Wine/archive/Libraries-$runtime_version.tar.gz" \
     "$release_plist"
 plutil -insert archiveSHA256 -string "$archive_sha" "$release_plist"
 plutil -insert minimumMacOSVersion -string "$minimum_macos" "$release_plist"
