@@ -12,7 +12,7 @@ VineyardMac is an independent continuation of the archived Whisky project. The r
 - `WhiskyThumbnail/` is the Quick Look thumbnail extension.
 - `Whisky.xcodeproj/` owns the app, CLI, thumbnail, SPM dependencies, schemes, signing, and build phases.
 - `Libraries/cabextract` is a vendored executable/resource from the original project; inspect licensing before changing or replacing it.
-- There are currently no test targets in the repo.
+- Focused runtime installer tests live under `WhiskyKit/Tests`.
 
 The app is primarily Swift/SwiftUI. Wine, DXVK, Metal/GPTK-related components, and Windows programs are external runtime dependencies or managed artifacts, not C code implemented in this repository.
 
@@ -68,11 +68,11 @@ Useful package-level check:
 swift build --package-path WhiskyKit
 ```
 
-Validation baseline observed on 2026-07-29:
+Validation baseline observed on 2026-08-09:
 
-- Xcode 27.0 beta 4 is selected through `xcode-select` and the signed Debug build passes.
+- macOS 26.6.1 and Xcode 26.6 (17F113) are selected, and the signed Debug build passes.
 - `swiftlint --strict` passes locally.
-- `swift build --package-path WhiskyKit` passes with Swift 6.4.
+- `swift test --package-path WhiskyKit` passes, including the runtime installer tests.
 - `WhiskyKit/Package.swift` and the Xcode workspace both use HTTPS for `SemanticVersion`.
 
 When validation cannot run, say exactly which command failed and why. Do not claim a build passed unless it actually ran successfully.

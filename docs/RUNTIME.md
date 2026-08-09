@@ -2,7 +2,7 @@
 
 VineyardMac downloads its Wine runtime from `data.vineyardmac.app`. The runtime is built separately from the app because it contains Wine and third-party compatibility components, including Apple's redistributable Game Porting Toolkit libraries.
 
-## Current Runtime
+## Staged Runtime
 
 Runtime `4.0.0-beta.2` contains:
 
@@ -14,6 +14,8 @@ Runtime `4.0.0-beta.2` contains:
 - Winetricks 20260125.
 
 The complete machine-readable inventory and source hashes are in [`Runtime/RuntimeManifest.json`](../Runtime/RuntimeManifest.json).
+
+The `4.0.0-beta.2` archive is stored at its immutable `Wine/archive/` URL. The public release pointer still targets the previous runtime and must not be advanced until PR #4 is merged and a fresh setup test passes.
 
 ## Building
 
@@ -41,7 +43,11 @@ Game Porting Toolkit redistributables may only be distributed according to Apple
 
 ## GPTK 4 Status
 
-Apple's GPTK 4 readme recommends Gcenx as the pre-built Wine environment and describes replacing its evaluation libraries with the GPTK 4 beta 2 redistributables. That replacement currently fails the D3D11 and D3D12 smoke tests on the maintainer's macOS 27 beta system, while Gcenx 3.0-3 passes both. Do not publish a GPTK 4 runtime until the same smoke tests pass.
+[Game Porting Toolkit 4](https://developer.apple.com/games/game-porting-toolkit) includes an updated evaluation environment. An experiment on macOS 27 beta and Xcode 27 beta replaced the Gcenx 3.0-3 evaluation libraries with GPTK 4 beta 2, but both D3D11 and D3D12 smoke tests failed.
+
+A follow-up Wine source experiment used Gcenx commit `2e232b59da4612f2f131bd2f690d70d8fbdf9b87`. The patched PE `ntdll.dll` and `gdi32.dll` built, but mixing them with the existing native `ntdll.so` failed with a syscall count mismatch. Building the matching native half with LLVM 22 then failed on assembler labels inside CFI blocks. The maintainer recovery folder preserves the patch and logs needed to resume this work.
+
+Apple's [`game-porting-toolkit-compiler`](https://github.com/apple/homebrew-apple/blob/main/Formula/game-porting-toolkit-compiler.rb) formula is still version 0.1 and builds the compiler from CrossOver 22.1.1 sources. It is not required to assemble or publish the staged runtime. Do not publish a GPTK 4 runtime until the DirectX smoke tests pass with a complete, internally matched Wine build.
 
 ## Smoke Test
 

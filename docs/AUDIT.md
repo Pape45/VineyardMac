@@ -1,6 +1,6 @@
 # VineyardMac Audit
 
-Last updated: 2026-07-30
+Last updated: 2026-08-09
 
 This document tracks the practical work needed to turn the archived Whisky codebase into VineyardMac. It is not a promise of features. It is a checklist for keeping changes small, reviewable, and safe for contributors.
 
@@ -14,7 +14,7 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 
 ## Current Baseline
 
-- The app builds from `Whisky.xcodeproj` with Xcode 27.0 beta 4.
+- The app builds from `Whisky.xcodeproj` on macOS 26.6.1 with Xcode 26.6.
 - `swiftlint --strict` passes locally.
 - Debug builds now use `Apple Development` signing with VineyardMac bundle identifiers:
   - `com.pape45.VineyardMac`
@@ -29,7 +29,8 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 - Wine library downloads and version checks use `https://data.vineyardmac.app/Wine/...`.
 - Wine installation preserves the app's Application Support directory while replacing the managed runtime.
 - Runtime downloads are checked against release metadata and installed through a validated staging directory.
-- Runtime `4.0.0-beta.2` uses Gcenx Game Porting Toolkit 3.0-3, keeps DXVK support, and includes its component manifest and licenses.
+- Staged runtime `4.0.0-beta.2` uses Gcenx Game Porting Toolkit 3.0-3, keeps DXVK support, and includes its component manifest and licenses.
+- The staged archive is stored under its immutable R2 key. The public release pointer remains on the previous runtime until PR #4 is merged and a fresh setup test passes.
 - Git history no longer embeds the retired `Whisky/Libraries/Wine` runtime payload.
 - Unfinished CLI export/install/uninstall stubs and the unused Progress.swift dependency have been removed.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
