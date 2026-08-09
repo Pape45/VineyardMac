@@ -21,5 +21,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Xcode version
         run: xcodebuild -version
+      - name: Test WhiskyKit
+        run: swift test --package-path WhiskyKit
       - name: Build
         run: xcodebuild -project Whisky.xcodeproj -scheme Whisky -configuration Debug CODE_SIGNING_ALLOWED=NO SWIFTLINT_SKIP=YES build

@@ -15,7 +15,7 @@ Runtime `4.0.0-beta.2` contains:
 
 The complete machine-readable inventory and source hashes are in [`Runtime/RuntimeManifest.json`](../Runtime/RuntimeManifest.json).
 
-The `4.0.0-beta.2` archive is stored at its immutable `Wine/archive/` URL. The public release pointer still targets the previous runtime and must not be advanced until PR #4 is merged and a fresh setup test passes.
+The `4.0.0-beta.2` archive is stored at its immutable `Wine/archive/` URL. The public release pointer still targets the previous runtime and must not be advanced until PR #4 is merged and prepublication validation passes; the fresh setup test follows immediately after publishing the pointer.
 
 ## Building
 

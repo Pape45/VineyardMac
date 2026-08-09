@@ -60,18 +60,19 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - Default branch: `main`
 - Active branch: `codex/gcenx-runtime-integrity`
 - Active pull request: `Pape45/VineyardMac#4`, `Adopt verified Gcenx runtime installation`
-- PR #4 was draft, mergeable, and green for the macOS build and SwiftLint when last checked.
+- PR #4 was draft, mergeable, and green for the macOS build, WhiskyKit tests, and SwiftLint when last checked.
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
-The branch contains six focused commits after `main`:
+The branch contains seven focused commits after `main`:
 
 - verified Gcenx runtime installation and tests;
 - safe handling for a missing runtime release URL;
 - refreshed stable-toolchain and GPTK status documentation;
 - maintainer handover documentation;
 - safe in-app runtime update routing without pre-download uninstall;
-- coherent immutable runtime metadata with a documented legacy path and rollback.
+- coherent immutable runtime metadata with a documented legacy path and rollback;
+- macOS CI coverage for WhiskyKit tests and corrected activation wording.
 
 Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
