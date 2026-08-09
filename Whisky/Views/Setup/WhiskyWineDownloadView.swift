@@ -26,6 +26,7 @@ struct WhiskyWineDownloadView: View {
     @State private var downloadSpeed: Double = 0
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
+    @State private var downloadID: UUID?
     @State private var startTime: Date?
     @State private var errorMessage: String?
     @Binding var tarLocation: URL
@@ -81,10 +82,19 @@ struct WhiskyWineDownloadView: View {
         .onAppear {
             startDownload()
         }
+        .onDisappear {
+            cancelDownload()
+        }
     }
 
     func startDownload() {
-        downloadTask?.cancel()
+        cancelDownload()
+        if runtimeRelease != nil {
+            try? FileManager.default.removeItem(at: tarLocation)
+            runtimeRelease = nil
+        }
+        let id = UUID()
+        downloadID = id
         errorMessage = nil
         completedBytes = 0
         totalBytes = 0
@@ -94,49 +104,75 @@ struct WhiskyWineDownloadView: View {
         Task {
             do {
                 let release = try await WhiskyWineInstaller.whiskyWineRelease()
+                guard downloadID == id else { return }
                 guard let downloadURL = release.downloadURL else {
                     throw WhiskyWineInstallerError.invalidRelease
                 }
-                downloadTask = URLSession(configuration: .ephemeral).downloadTask(
-                    with: downloadURL
-                ) { url, response, error in
-                    do {
-                        if let error {
-                            throw error
-                        }
-                        guard let response = response as? HTTPURLResponse,
-                              200..<300 ~= response.statusCode,
-                              let url else {
-                            throw URLError(.badServerResponse)
-                        }
-
-                        let savedArchive = FileManager.default.temporaryDirectory
-                            .appending(path: "VineyardMac-\(UUID().uuidString)")
-                            .appendingPathExtension("tar.gz")
-                        try FileManager.default.moveItem(at: url, to: savedArchive)
-
-                        Task { @MainActor in
-                            tarLocation = savedArchive
-                            runtimeRelease = release
-                            proceed()
-                        }
-                    } catch {
-                        Task { @MainActor in
-                            errorMessage = error.localizedDescription
-                        }
-                    }
-                }
-                observeDownloadProgress()
-                downloadTask?.resume()
+                let task = makeDownloadTask(from: downloadURL, release: release, id: id)
+                downloadTask = task
+                observeDownloadProgress(task, id: id)
+                task.resume()
             } catch {
+                guard downloadID == id else { return }
                 errorMessage = error.localizedDescription
             }
         }
     }
 
-    func observeDownloadProgress() {
-        observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
+    func makeDownloadTask(
+        from downloadURL: URL,
+        release: WhiskyWineRelease,
+        id: UUID
+    ) -> URLSessionDownloadTask {
+        URLSession(configuration: .ephemeral).downloadTask(with: downloadURL) { url, response, error in
+            do {
+                if let error {
+                    throw error
+                }
+                guard let response = response as? HTTPURLResponse,
+                      200..<300 ~= response.statusCode,
+                      let url else {
+                    throw URLError(.badServerResponse)
+                }
+
+                let savedArchive = FileManager.default.temporaryDirectory
+                    .appending(path: "VineyardMac-\(UUID().uuidString)")
+                    .appendingPathExtension("tar.gz")
+                try FileManager.default.moveItem(at: url, to: savedArchive)
+
+                Task { @MainActor in
+                    guard downloadID == id else {
+                        try? FileManager.default.removeItem(at: savedArchive)
+                        return
+                    }
+                    observation?.invalidate()
+                    observation = nil
+                    downloadTask = nil
+                    tarLocation = savedArchive
+                    runtimeRelease = release
+                    proceed()
+                }
+            } catch {
+                Task { @MainActor in
+                    guard downloadID == id else { return }
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func cancelDownload() {
+        downloadID = nil
+        observation?.invalidate()
+        observation = nil
+        downloadTask?.cancel()
+        downloadTask = nil
+    }
+
+    func observeDownloadProgress(_ task: URLSessionDownloadTask, id: UUID) {
+        observation = task.observe(\.countOfBytesReceived) { task, _ in
             Task { @MainActor in
+                guard downloadID == id else { return }
                 let currentTime = Date()
                 let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
                 if completedBytes > 0 {
