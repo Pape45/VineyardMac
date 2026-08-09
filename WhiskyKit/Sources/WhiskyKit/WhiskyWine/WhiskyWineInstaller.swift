@@ -64,21 +64,25 @@ public class WhiskyWineInstaller {
 
         let hadInstalledRuntime = FileManager.default.fileExists(atPath: libraryFolder.path)
         if hadInstalledRuntime {
-            try FileManager.default.moveItem(at: libraryFolder, to: backup)
-        }
-
-        do {
-            try FileManager.default.moveItem(at: candidate, to: libraryFolder)
-            if hadInstalledRuntime {
+            do {
+                _ = try FileManager.default.replaceItemAt(
+                    libraryFolder,
+                    withItemAt: candidate,
+                    backupItemName: backup.lastPathComponent,
+                    options: .withoutDeletingBackupItem
+                )
                 try? FileManager.default.removeItem(at: backup)
+            } catch {
+                if FileManager.default.fileExists(atPath: backup.path),
+                   !FileManager.default.fileExists(atPath: libraryFolder.path) {
+                    try? FileManager.default.moveItem(at: backup, to: libraryFolder)
+                }
+                throw error
             }
-            try? FileManager.default.removeItem(at: archive)
-        } catch {
-            if hadInstalledRuntime, !FileManager.default.fileExists(atPath: libraryFolder.path) {
-                try? FileManager.default.moveItem(at: backup, to: libraryFolder)
-            }
-            throw error
+        } else {
+            try FileManager.default.moveItem(at: candidate, to: libraryFolder)
         }
+        try? FileManager.default.removeItem(at: archive)
     }
 
     public static func uninstall() {

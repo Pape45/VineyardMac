@@ -34,6 +34,7 @@ struct ContentView: View {
     @State private var openedFileURL: URL?
     @State private var triggerRefresh: Bool = false
     @State private var refreshAnimation: Angle = .degrees(0)
+    @State private var setupStage: SetupStage?
 
     @State private var bottleFilter = ""
 
@@ -74,9 +75,11 @@ struct ContentView: View {
         .sheet(isPresented: $showBottleCreation) {
             BottleCreationView(newlyCreatedBottleURL: $newlyCreatedBottleURL)
         }
-        .sheet(isPresented: $showSetup) {
-            SetupView(showSetup: $showSetup, firstTime: false)
-        }
+        .sheet(isPresented: $showSetup, onDismiss: {
+            setupStage = nil
+        }, content: {
+            SetupView(showSetup: $showSetup, firstTime: false, initialStage: setupStage)
+        })
         .sheet(item: $openedFileURL) { url in
             FileOpenView(fileURL: url,
                          currentBottle: selected,
@@ -123,7 +126,7 @@ struct ContentView: View {
                 let response = alert.runModal()
 
                 if response == .alertFirstButtonReturn {
-                    WhiskyWineInstaller.uninstall()
+                    setupStage = .whiskyWineDownload
                     showSetup = true
                 }
             }

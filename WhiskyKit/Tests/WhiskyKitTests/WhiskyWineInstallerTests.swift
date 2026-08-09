@@ -51,7 +51,7 @@ final class WhiskyWineInstallerTests: XCTestCase {
         )
     }
 
-    func testInstallKeepsExistingRuntimeWhenChecksumIsInvalid() throws {
+    func testInstallKeepsExistingRuntimeWhenValidationFails() throws {
         let testFolder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: testFolder) }
         let installedRuntime = testFolder.appending(path: "Libraries")
@@ -59,9 +59,22 @@ final class WhiskyWineInstallerTests: XCTestCase {
         let marker = installedRuntime.appending(path: "existing-runtime")
         try Data().write(to: marker)
 
+        let sourceRoot = testFolder.appending(path: "source")
+        try FileManager.default.createDirectory(
+            at: sourceRoot.appending(path: "Libraries"),
+            withIntermediateDirectories: true
+        )
         let archive = testFolder.appending(path: "invalid.tar.gz")
-        try Data("invalid".utf8).write(to: archive)
-        let release = try makeRelease(archiveURL: archive, sha256: String(repeating: "0", count: 64))
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        process.arguments = ["-czf", archive.path, "-C", sourceRoot.path, "Libraries"]
+        try process.run()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        let release = try makeRelease(
+            archiveURL: archive,
+            sha256: try WhiskyWineInstaller.sha256(of: archive)
+        )
 
         XCTAssertThrowsError(
             try WhiskyWineInstaller.install(from: archive, release: release, applicationFolder: testFolder)

@@ -64,11 +64,13 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
-The branch contains three focused commits after `main`:
+The branch contains five focused commits after `main`:
 
 - verified Gcenx runtime installation and tests;
 - safe handling for a missing runtime release URL;
-- refreshed stable-toolchain and GPTK status documentation.
+- refreshed stable-toolchain and GPTK status documentation;
+- maintainer handover documentation;
+- safe in-app runtime update routing without pre-download uninstall.
 
 Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
@@ -104,7 +106,9 @@ xcodebuild -project Whisky.xcodeproj \
 
 ## Runtime State
 
-PR #4 changes runtime installation from an unverified replacement to a staged, validated installation. It adds release metadata validation, SHA-256 verification, required-file checks, an embedded manifest/version check, safe replacement that preserves the previous runtime until validation succeeds, and focused tests.
+PR #4 changes runtime installation from an unverified replacement to a staged, validated installation. It adds release metadata validation, SHA-256 verification, required-file checks, an embedded manifest/version check, atomic replacement that preserves the previous runtime until validation succeeds, and focused tests.
+
+The in-app update prompt now opens the existing runtime download and installation flow directly. It no longer uninstalls the installed runtime before download, so download or validation failures leave the current runtime available.
 
 Staged runtime `4.0.0-beta.2` contains Gcenx Game Porting Toolkit 3.0-3, D3DMetal 3.0, the VineyardMac Vulkan driver, DXVK-macOS, MoltenVK, GStreamer, Winetricks, licenses, and `RuntimeManifest.json`. The exact component and source inventory is in `Runtime/RuntimeManifest.json`.
 
