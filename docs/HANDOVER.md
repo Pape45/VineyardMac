@@ -64,7 +64,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
-The branch contains nine focused commits after `main`:
+The branch contains ten focused commits after `main`:
 
 - verified Gcenx runtime installation and tests;
 - safe handling for a missing runtime release URL;
@@ -74,7 +74,8 @@ The branch contains nine focused commits after `main`:
 - coherent immutable runtime metadata with a documented legacy path and rollback;
 - macOS CI coverage for WhiskyKit tests and corrected activation wording;
 - cancellation-safe runtime download lifecycle and temporary archive cleanup;
-- blocked back navigation during atomic runtime installation.
+- blocked back navigation during atomic runtime installation;
+- exact immutable-key publication and strict-client rollback rules.
 
 Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
@@ -137,16 +138,16 @@ Safe activation order after PR #4 is approved and merged:
 
 1. Prepare the complete release plist pointing directly to the immutable beta.2 URL.
 2. Before activation, verify its version, URL, and SHA-256 against the archive; extract the archive, validate its required files, embedded version, and manifest, and run the disposable-prefix smoke tests.
-3. Recheck the immutable beta.2 object's status, size, and SHA-256.
+3. Treat the versioned key as immutable: because the beta.2 key already exists, only verify its status, exact size, and SHA-256. If either size or SHA-256 differs, stop and use a new runtime version and immutable key; never overwrite beta.2.
 4. Preserve the previous release plist and mutable archive for rollback.
 5. Upload the validated bytes to mutable `Wine/Libraries.tar.gz` for older clients and verify its SHA-256.
 6. Upload the matching root `RuntimeManifest.json` if the public copy is missing or stale.
 7. Upload `WhiskyWineVersion.plist` last because current clients treat it as the release pointer.
 8. Immediately remove the local app/runtime state, perform a genuinely fresh graphical setup test, create a bottle, and launch `winecfg` or the DirectX smoke executable before considering the runtime active.
 
-If the immediate acceptance test fails, restore the previous `WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz`, verify both remote objects, and repeat the fresh setup test. Keep the failed immutable beta.2 object unchanged for diagnosis.
+If the immediate acceptance test fails, restore the previous beta.1 `WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz` and verify both remote objects. This rollback protects older clients only: the strict installer rejects beta.1's incomplete metadata. After rollback, do not distribute a new strict app or report a strict fresh setup as successful. Resume only with a fully validatable runtime under a new immutable key. Keep the failed immutable beta.2 object unchanged for diagnosis.
 
-Do not rebuild beta.2 merely because the local source downloads are absent. The immutable uploaded artifact already exists and was verified.
+Do not rebuild beta.2 merely because the local source downloads are absent. The immutable uploaded artifact already exists and was verified; any future mismatch requires a new version and key, not replacement of beta.2.
 
 ## GPTK 4 Investigation
 

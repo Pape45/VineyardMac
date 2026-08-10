@@ -31,7 +31,8 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 - Runtime downloads are checked against release metadata and installed through a validated staging directory.
 - Staged runtime `4.0.0-beta.2` uses Gcenx Game Porting Toolkit 3.0-3, keeps DXVK support, and includes its component manifest and licenses.
 - Runtime builds keep the local and legacy filename `Libraries.tar.gz`, while generated release metadata points to the versioned immutable archive URL.
-- Activation requires local prevalidation, remote size and hash verification, the release pointer published last, an immediate fresh setup test, and rollback of both the previous pointer and mutable legacy archive on failure.
+- Activation requires local prevalidation, verification-only reuse of an existing immutable key, a new version and key on any size or SHA-256 mismatch, the release pointer published last, and an immediate fresh setup test.
+- Rolling back the beta.1 pointer and mutable archive protects older clients only. Strict app distribution and successful strict fresh-setup claims must wait for a fully validatable runtime under a new immutable key.
 - The staged archive is stored under its immutable R2 key. The public release pointer remains on the previous runtime until PR #4 is merged and the activation procedure passes.
 - Git history no longer embeds the retired `Whisky/Libraries/Wine` runtime payload.
 - Unfinished CLI export/install/uninstall stubs and the unused Progress.swift dependency have been removed.
