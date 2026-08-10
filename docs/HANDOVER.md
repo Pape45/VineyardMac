@@ -1,6 +1,6 @@
 # VineyardMac Maintainer Handover
 
-Last verified: 2026-08-09
+Last verified: 2026-08-10
 
 This is the operational handover for future coordinating and working agents. It records current facts, completed work, known blockers, and the safest next steps. Verify volatile facts such as Git status, pull request state, CI, remote files, and installed tools before acting.
 
@@ -64,7 +64,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
-The branch contains eight focused commits after `main`:
+The branch contains nine focused commits after `main`:
 
 - verified Gcenx runtime installation and tests;
 - safe handling for a missing runtime release URL;
@@ -73,7 +73,8 @@ The branch contains eight focused commits after `main`:
 - safe in-app runtime update routing without pre-download uninstall;
 - coherent immutable runtime metadata with a documented legacy path and rollback;
 - macOS CI coverage for WhiskyKit tests and corrected activation wording;
-- cancellation-safe runtime download lifecycle and temporary archive cleanup.
+- cancellation-safe runtime download lifecycle and temporary archive cleanup;
+- blocked back navigation during atomic runtime installation.
 
 Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
@@ -114,6 +115,8 @@ PR #4 changes runtime installation from an unverified replacement to a staged, v
 The in-app update prompt now opens the existing runtime download and installation flow directly. It no longer uninstalls the installed runtime before download, so download or validation failures leave the current runtime available.
 
 Leaving or retrying the runtime download screen cancels its URL session task and progress observation. Stale callbacks cannot advance setup, and any archive they already moved is removed.
+
+The runtime installation screen hides native back navigation while installation runs. After an error, its Retry button remains the only route back to a fresh download; the atomic installation task is not cancelled.
 
 Staged runtime `4.0.0-beta.2` contains Gcenx Game Porting Toolkit 3.0-3, D3DMetal 3.0, the VineyardMac Vulkan driver, DXVK-macOS, MoltenVK, GStreamer, Winetricks, licenses, and `RuntimeManifest.json`. The exact component and source inventory is in `Runtime/RuntimeManifest.json`.
 

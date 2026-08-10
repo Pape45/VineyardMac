@@ -67,6 +67,7 @@ struct WhiskyWineInstallView: View {
             Spacer()
         }
         .frame(width: 400, height: 200)
+        .navigationBarBackButtonHidden(true)
         .onAppear {
             install()
         }
