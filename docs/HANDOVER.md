@@ -58,27 +58,11 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - Repository: `https://github.com/Pape45/VineyardMac`
 - Original upstream: `https://github.com/Whisky-App/Whisky`
 - Default branch: `main`
-- Active branch: `codex/gcenx-runtime-integrity`
-- Active pull request: `Pape45/VineyardMac#4`, `Adopt verified Gcenx runtime installation`
-- PR #4 was draft, mergeable, and green for the macOS build, WhiskyKit tests, and SwiftLint when last checked.
+- Active branch: `runtime-beta2-activation-record`
+- PR `Pape45/VineyardMac#4`, `Adopt verified Gcenx runtime installation`, was merged as `59a33f9d5965009b6ca836da158844bc000148d9` after its macOS build, WhiskyKit tests, and SwiftLint passed.
+- The active branch was created from that merge and records the completed beta.2 activation. No follow-up pull request has been opened.
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
-
-The branch contains eleven focused commits after `main`:
-
-- verified Gcenx runtime installation and tests;
-- safe handling for a missing runtime release URL;
-- refreshed stable-toolchain and GPTK status documentation;
-- maintainer handover documentation;
-- safe in-app runtime update routing without pre-download uninstall;
-- coherent immutable runtime metadata with a documented legacy path and rollback;
-- macOS CI coverage for WhiskyKit tests and corrected activation wording;
-- cancellation-safe runtime download lifecycle and temporary archive cleanup;
-- blocked back navigation during atomic runtime installation;
-- exact immutable-key publication and strict-client rollback rules;
-- read-only prevalidation of the immutable beta.2 runtime.
-
-Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
 ## Verified Stable Environment
 
@@ -112,7 +96,7 @@ xcodebuild -project Whisky.xcodeproj \
 
 ## Runtime State
 
-PR #4 changes runtime installation from an unverified replacement to a staged, validated installation. It adds release metadata validation, SHA-256 verification, required-file checks, an embedded manifest/version check, atomic replacement that preserves the previous runtime until validation succeeds, and focused tests.
+Merged PR #4 changes runtime installation from an unverified replacement to a staged, validated installation. It adds release metadata validation, SHA-256 verification, required-file checks, an embedded manifest/version check, atomic replacement that preserves the previous runtime until validation succeeds, and focused tests.
 
 The in-app update prompt now opens the existing runtime download and installation flow directly. It no longer uninstalls the installed runtime before download, so download or validation failures leave the current runtime available.
 
@@ -120,7 +104,7 @@ Leaving or retrying the runtime download screen cancels its URL session task and
 
 The runtime installation screen hides native back navigation while installation runs. After an error, its Retry button remains the only route back to a fresh download; the atomic installation task is not cancelled.
 
-Staged runtime `4.0.0-beta.2` contains Gcenx Game Porting Toolkit 3.0-3, D3DMetal 3.0, the VineyardMac Vulkan driver, DXVK-macOS, MoltenVK, GStreamer, Winetricks, licenses, and `RuntimeManifest.json`. The exact component and source inventory is in `Runtime/RuntimeManifest.json`.
+Active runtime `4.0.0-beta.2` contains Gcenx Game Porting Toolkit 3.0-3, D3DMetal 3.0, the VineyardMac Vulkan driver, DXVK-macOS, MoltenVK, GStreamer, Winetricks, licenses, and `RuntimeManifest.json`. The exact component and source inventory is in `Runtime/RuntimeManifest.json`.
 
 The complete immutable artifact was built, smoke-tested, uploaded, and downloaded again with a matching hash:
 
@@ -135,9 +119,20 @@ Public access on this download bucket is intentional. Production safety comes fr
 
 `scripts/build-runtime.sh` keeps the generated archive name `Libraries.tar.gz` for local output and the mutable legacy upload, but writes the matching immutable `Wine/archive/Libraries-<version>.tar.gz` URL into `WhiskyWineVersion.plist`.
 
-The current public `Wine/WhiskyWineVersion.plist` still describes the old `4.0.0-beta.1` runtime and lacks the complete beta.2 metadata. The mutable `Wine/Libraries.tar.gz` is also the old beta.1 archive. The branch's stricter installer therefore rejects current first-run setup with a missing-data error. This is not evidence that Cloudflare is blocking the request.
+Beta.2 was activated on 2026-08-11. Public R2 now contains:
 
-Safe activation order after PR #4 is approved and merged:
+- unchanged immutable `Wine/archive/Libraries-4.0.0-beta.2.tar.gz`, `404974593` bytes, SHA-256 `86f9a7f6280b1648e5a7a640023a3a443870c882fdd214c062ce60b344004ef4`, ETag `e8c5990b55345d80952c28843c1d5f44-13`;
+- mutable `Wine/Libraries.tar.gz` with the same size and SHA-256, ETag `03f940e4df39f65820edb1e5d1a9061a`;
+- root `Wine/RuntimeManifest.json`, byte-identical to the repository, SHA-256 `cc2bbe8061f5bb3176a14481bb0da3902c3300108ee9251b99d3a85178ef4c67`;
+- `Wine/WhiskyWineVersion.plist` version `4.0.0-beta.2+2`, immutable URL, archive SHA-256, and minimum macOS `14.0`, SHA-256 `b9f9c757a93ae9c5444b1ce45caf00e317b62036f696ccc833ea1b76a4fddf53`.
+
+Wrangler 4.120.0 refused the 386 MiB local upload because `r2 object put` is capped at 300 MiB. An ephemeral R2-bound Worker instead streamed the already verified immutable object to the mutable key after checking both objects' size and ETag. The Worker was stopped immediately, its local files were removed, and the mutable object was downloaded again and matched the expected SHA-256 before the manifest or pointer was published.
+
+The signed Debug app then completed a genuinely fresh graphical setup from an initially absent local runtime. The installed runtime reports `4.0.0-beta.2+2`, and its manifest matches the repository. A bottle created only under `/Users/pape/Documents/VineyardMac-Activation-2026-08-11/` initialized successfully and launched `winecfg.exe`; its reference, files, and targeted Wine processes were removed afterward. The app was closed, while the installed beta.2 runtime remains in Application Support. No rollback was needed and no existing bottle was touched. Beta.1 rollback files remain under `/Users/pape/Documents/VineyardMac-Activation-2026-08-11/backups/r2/`.
+
+One follow-up risk remains: after bottle initialization the app logged `Bottle has a different wine version` and left that bottle's action buttons disabled, although direct `winecfg` launch with the same prefix succeeded. Investigate this separately; it did not invalidate runtime installation or Wine execution.
+
+For future runtime activations, keep this order:
 
 1. Prepare the complete release plist pointing directly to the immutable beta.2 URL.
 2. Before activation, verify its version, URL, and SHA-256 against the archive; extract the archive, validate its required files, embedded version, and manifest, and run the disposable-prefix smoke tests.
@@ -183,11 +178,4 @@ Apple's `game-porting-toolkit-compiler` Homebrew formula remains version 0.1 and
 
 ## Recommended Next Decision
 
-The next coordinator should first verify that the worktree is clean, PR #4 still targets the correct repository, and its new checks are green. It should then ask the maintainer whether to:
-
-1. mark PR #4 ready and merge it;
-2. activate the immutable beta.2 runtime on R2 after merge;
-3. run the fresh-install graphical acceptance test;
-4. return to GPTK 4 only after the stable runtime path works end to end.
-
-Do not start a UI refactor or another runtime rebuild before this release path is resolved.
+After the activation-record branch is reviewed, decide whether to open a documentation pull request. Do not repeat or roll back the successful R2 activation without a new explicit decision. Investigate the disposable bottle's post-creation version warning separately before returning to GPTK 4 or starting a broad UI refactor.

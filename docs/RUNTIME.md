@@ -15,7 +15,7 @@ Runtime `4.0.0-beta.2` contains:
 
 The complete machine-readable inventory and source hashes are in [`Runtime/RuntimeManifest.json`](../Runtime/RuntimeManifest.json).
 
-The `4.0.0-beta.2` archive is stored at its immutable `Wine/archive/` URL. The public release pointer still targets the previous runtime and must not be advanced until PR #4 is merged and prepublication validation passes; the fresh setup test follows immediately after publishing the pointer.
+The `4.0.0-beta.2` archive is stored at its immutable `Wine/archive/` URL. It became the public runtime on 2026-08-11 after prepublication validation and an immediate fresh graphical setup test.
 
 ## Building
 
@@ -39,9 +39,13 @@ Before activation, verify that the generated plist version, immutable URL, and S
 
 Keep the previous release plist and mutable archive available for rollback. If the immutable `Wine/archive/Libraries-<version>.tar.gz` key does not exist, upload the validated `Libraries.tar.gz` bytes once. If it already exists, only verify its size and SHA-256 against the validated archive. If either differs, stop and use a new runtime version and immutable key; never overwrite an existing immutable key. After verifying the immutable object, upload the same bytes to mutable `Wine/Libraries.tar.gz` for older clients, then upload `RuntimeManifest.json`. Upload `WhiskyWineVersion.plist` last because current clients treat it as the release pointer.
 
+Wrangler's `r2 object put` command refuses files larger than 300 MiB even though R2 accepts larger objects. When the verified immutable object already exists in the same bucket, an ephemeral Worker with an R2 binding can stream the result of `get(immutableKey).body` into `put("Wine/Libraries.tar.gz", ...)`. Guard the copy with the expected source and destination size and ETag, never write the immutable key, stop the Worker after the single copy, and verify the mutable object's public SHA-256 before publishing anything else. This performs one R2 read and one write with no R2 egress charge, but account quotas must still be checked.
+
 Immediately after publishing the pointer, perform a fresh setup, create a bottle, and launch `winecfg` or the DirectX smoke executable. If that acceptance test fails, restore the previous beta.1 `WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz` and verify both remote objects. This protects older clients only: beta.1 metadata is incomplete and the strict installer rejects it. After rollback, do not distribute a new strict app or report a strict fresh setup as successful. Resume only with a fully validatable runtime under a new immutable key. Keep the failed immutable archive unchanged for diagnosis.
 
 The app verifies the archive SHA-256, its required files, the internal manifest, and the embedded version before replacing an installed runtime. Installation occurs in a staging directory and keeps the previous runtime until validation succeeds.
+
+The beta.2 activation published a mutable archive of `404974593` bytes with SHA-256 `86f9a7f6280b1648e5a7a640023a3a443870c882fdd214c062ce60b344004ef4`, a root manifest with SHA-256 `cc2bbe8061f5bb3176a14481bb0da3902c3300108ee9251b99d3a85178ef4c67`, and the complete `4.0.0-beta.2+2` plist. A fresh setup installed that version, reproduced the repository manifest, created a disposable bottle, and launched `winecfg`; the bottle and its processes were then removed.
 
 Game Porting Toolkit redistributables may only be distributed according to Apple's license. VineyardMac's runtime distribution is non-commercial and retains the license linked by the exact Gcenx release used.
 
