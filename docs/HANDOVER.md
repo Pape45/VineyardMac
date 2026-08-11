@@ -1,6 +1,6 @@
 # VineyardMac Maintainer Handover
 
-Last verified: 2026-08-10
+Last verified: 2026-08-11
 
 This is the operational handover for future coordinating and working agents. It records current facts, completed work, known blockers, and the safest next steps. Verify volatile facts such as Git status, pull request state, CI, remote files, and installed tools before acting.
 
@@ -64,7 +64,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
-The branch contains ten focused commits after `main`:
+The branch contains eleven focused commits after `main`:
 
 - verified Gcenx runtime installation and tests;
 - safe handling for a missing runtime release URL;
@@ -75,7 +75,8 @@ The branch contains ten focused commits after `main`:
 - macOS CI coverage for WhiskyKit tests and corrected activation wording;
 - cancellation-safe runtime download lifecycle and temporary archive cleanup;
 - blocked back navigation during atomic runtime installation;
-- exact immutable-key publication and strict-client rollback rules.
+- exact immutable-key publication and strict-client rollback rules;
+- read-only prevalidation of the immutable beta.2 runtime.
 
 Do not merge PR #4 or publish its release pointer without an explicit maintainer decision.
 
@@ -127,6 +128,8 @@ The complete immutable artifact was built, smoke-tested, uploaded, and downloade
 - URL: `https://data.vineyardmac.app/Wine/archive/Libraries-4.0.0-beta.2.tar.gz`
 - Size: `404974593` bytes
 - SHA-256: `86f9a7f6280b1648e5a7a640023a3a443870c882fdd214c062ce60b344004ef4`
+
+Read-only prevalidation was repeated on 2026-08-11 from the immutable URL. The download matched the exact size and SHA-256 above; all 18 installer-required files and executable bits were present; the embedded version was `4.0.0-beta.2+2`; and its `RuntimeManifest.json` was byte-identical to the repository copy with SHA-256 `cc2bbe8061f5bb3176a14481bb0da3902c3300108ee9251b99d3a85178ef4c67`. Disposable-prefix smoke tests passed for D3D11 (`0xb000`), D3D12 device creation, and DXVK D3D11 using DXVK `1.10.3-20230507-async` with MoltenVK `1.4.2`. The isolated `/tmp` archive, extraction, compiled smoke executable, Wine prefix, and DXVK logs were removed afterward. No R2 object, release pointer, user bottle or container was modified, and no graphical test was run.
 
 Public access on this download bucket is intentional. Production safety comes from immutable versioned keys, release metadata, SHA-256 verification, runtime validation, and publishing the release pointer last.
 
