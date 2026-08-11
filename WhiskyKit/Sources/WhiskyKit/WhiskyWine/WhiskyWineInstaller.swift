@@ -16,10 +16,15 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import CryptoKit
 import Foundation
 import SemanticVersion
 
 public class WhiskyWineInstaller {
+    private static let releaseURL = URL(
+        string: "https://data.vineyardmac.app/Wine/WhiskyWineVersion.plist"
+    )
+
     /// The Whisky application folder
     public static let applicationFolder = FileManager.default.urls(
         for: .applicationSupportDirectory, in: .userDomainMask
@@ -35,19 +40,49 @@ public class WhiskyWineInstaller {
         return whiskyWineVersion() != nil
     }
 
-    public static func install(from: URL) {
-        do {
-            try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
+    public static func install(from archive: URL, release: WhiskyWineRelease) throws {
+        try install(from: archive, release: release, applicationFolder: applicationFolder)
+    }
 
-            if FileManager.default.fileExists(atPath: libraryFolder.path) {
-                try FileManager.default.removeItem(at: libraryFolder)
-            }
-
-            try Tar.untar(tarBall: from, toURL: applicationFolder)
-            try FileManager.default.removeItem(at: from)
-        } catch {
-            print("Failed to install WhiskyWine: \(error)")
+    static func install(from archive: URL, release: WhiskyWineRelease, applicationFolder: URL) throws {
+        let libraryFolder = applicationFolder.appending(path: "Libraries")
+        guard try sha256(of: archive) == release.archiveSHA256.lowercased() else {
+            throw WhiskyWineInstallerError.invalidChecksum
         }
+
+        try requireSupportedOS(release.minimumMacOSVersion)
+        try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
+
+        let stagingFolder = applicationFolder.appending(path: ".runtime-install-\(UUID().uuidString)")
+        let candidate = stagingFolder.appending(path: "Libraries")
+        let backup = applicationFolder.appending(path: ".runtime-backup-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: stagingFolder) }
+
+        try FileManager.default.createDirectory(at: stagingFolder, withIntermediateDirectories: true)
+        try Tar.untar(tarBall: archive, toURL: stagingFolder)
+        try validate(candidate, release: release)
+
+        let hadInstalledRuntime = FileManager.default.fileExists(atPath: libraryFolder.path)
+        if hadInstalledRuntime {
+            do {
+                _ = try FileManager.default.replaceItemAt(
+                    libraryFolder,
+                    withItemAt: candidate,
+                    backupItemName: backup.lastPathComponent,
+                    options: .withoutDeletingBackupItem
+                )
+                try? FileManager.default.removeItem(at: backup)
+            } catch {
+                if FileManager.default.fileExists(atPath: backup.path),
+                   !FileManager.default.fileExists(atPath: libraryFolder.path) {
+                    try? FileManager.default.moveItem(at: backup, to: libraryFolder)
+                }
+                throw error
+            }
+        } else {
+            try FileManager.default.moveItem(at: candidate, to: libraryFolder)
+        }
+        try? FileManager.default.removeItem(at: archive)
     }
 
     public static func uninstall() {
@@ -59,47 +94,55 @@ public class WhiskyWineInstaller {
     }
 
     public static func shouldUpdateWhiskyWine() async -> (Bool, SemanticVersion) {
-        let versionPlistURL = "https://data.vineyardmac.app/Wine/WhiskyWineVersion.plist"
         let localVersion = whiskyWineVersion()
 
-        var remoteVersion: SemanticVersion?
+        do {
+            let remoteVersion = try await whiskyWineRelease().version
+            return (localVersion.map { $0 < remoteVersion } ?? false, remoteVersion)
+        } catch {
+            print(error)
+            return (false, SemanticVersion(0, 0, 0))
+        }
+    }
 
-        if let remoteUrl = URL(string: versionPlistURL) {
-            remoteVersion = await withCheckedContinuation { continuation in
-                URLSession(configuration: .ephemeral).dataTask(with: URLRequest(url: remoteUrl)) { data, _, error in
-                    do {
-                        if error == nil, let data = data {
-                            let decoder = PropertyListDecoder()
-                            let remoteInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
-                            let remoteVersion = remoteInfo.version
-
-                            continuation.resume(returning: remoteVersion)
-                            return
-                        }
-                        if let error = error {
-                            print(error)
-                        }
-                    } catch {
-                        print(error)
-                    }
-
-                    continuation.resume(returning: nil)
-                }.resume()
-            }
+    public static func whiskyWineRelease() async throws -> WhiskyWineRelease {
+        guard let releaseURL else {
+            throw WhiskyWineInstallerError.invalidRelease
+        }
+        let (data, response) = try await URLSession(configuration: .ephemeral).data(from: releaseURL)
+        guard let response = response as? HTTPURLResponse, 200..<300 ~= response.statusCode else {
+            throw WhiskyWineInstallerError.releaseUnavailable
         }
 
-        if let localVersion = localVersion, let remoteVersion = remoteVersion {
-            if localVersion < remoteVersion {
-                return (true, remoteVersion)
-            }
+        let release = try PropertyListDecoder().decode(WhiskyWineRelease.self, from: data)
+        guard release.downloadURL != nil,
+              release.archiveSHA256.range(
+                of: #"^[0-9a-fA-F]{64}$"#,
+                options: .regularExpression
+              ) != nil else {
+            throw WhiskyWineInstallerError.invalidRelease
         }
-
-        return (false, SemanticVersion(0, 0, 0))
+        return release
     }
 
     public static func whiskyWineVersion() -> SemanticVersion? {
+        whiskyWineVersion(in: libraryFolder)
+    }
+
+    static func sha256(of url: URL) throws -> String {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+
+        var hasher = SHA256()
+        while let data = try handle.read(upToCount: 1024 * 1024), !data.isEmpty {
+            hasher.update(data: data)
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func whiskyWineVersion(in folder: URL) -> SemanticVersion? {
         do {
-            let versionPlist = libraryFolder
+            let versionPlist = folder
                 .appending(path: "WhiskyWineVersion")
                 .appendingPathExtension("plist")
 
@@ -112,8 +155,100 @@ public class WhiskyWineInstaller {
             return nil
         }
     }
+
+    private static func validate(_ candidate: URL, release: WhiskyWineRelease) throws {
+        let requiredFiles = [
+            "Wine/bin/wine64",
+            "Wine/bin/wineserver",
+            "Wine/lib/external/D3DMetal.framework/Versions/A/D3DMetal",
+            "Wine/lib/libMoltenVK.dylib",
+            "Wine/lib/wine/x86_64-unix/winemac.drv.so",
+            "Wine/lib/wine/x86_32on64-unix/winemac.drv.so",
+            "DXVK/x64/d3d9.dll",
+            "DXVK/x64/d3d10core.dll",
+            "DXVK/x64/d3d11.dll",
+            "DXVK/x64/dxgi.dll",
+            "DXVK/x32/d3d9.dll",
+            "DXVK/x32/d3d10core.dll",
+            "DXVK/x32/d3d11.dll",
+            "DXVK/x32/dxgi.dll",
+            "winetricks",
+            "verbs.txt",
+            "RuntimeManifest.json",
+            "WhiskyWineVersion.plist"
+        ]
+        guard requiredFiles.allSatisfy({
+            FileManager.default.fileExists(atPath: candidate.appending(path: $0).path)
+        }) else {
+            throw WhiskyWineInstallerError.invalidArchive
+        }
+
+        let manifestData = try Data(contentsOf: candidate.appending(path: "RuntimeManifest.json"))
+        let manifest = try JSONDecoder().decode(RuntimeManifest.self, from: manifestData)
+        let releaseVersion = String(release.version).split(separator: "+", maxSplits: 1)[0]
+        guard manifest.runtimeVersion == releaseVersion,
+              whiskyWineVersion(in: candidate) == release.version else {
+            throw WhiskyWineInstallerError.versionMismatch
+        }
+    }
+
+    private static func requireSupportedOS(_ minimumVersion: String) throws {
+        let components = minimumVersion.split(separator: ".").compactMap { Int($0) }
+        guard components.count >= 2 else {
+            throw WhiskyWineInstallerError.invalidRelease
+        }
+        let required = OperatingSystemVersion(
+            majorVersion: components[0],
+            minorVersion: components[1],
+            patchVersion: components.count > 2 ? components[2] : 0
+        )
+        guard ProcessInfo.processInfo.isOperatingSystemAtLeast(required) else {
+            throw WhiskyWineInstallerError.unsupportedOS(minimumVersion)
+        }
+    }
 }
 
-struct WhiskyWineVersion: Codable {
+public struct WhiskyWineRelease: Codable, Equatable, Sendable {
+    public let version: SemanticVersion
+    public let archiveURL: String
+    public let archiveSHA256: String
+    public let minimumMacOSVersion: String
+
+    public var downloadURL: URL? {
+        URL(string: archiveURL)
+    }
+}
+
+private struct WhiskyWineVersion: Codable {
     var version: SemanticVersion = SemanticVersion(1, 0, 0)
+}
+
+private struct RuntimeManifest: Codable {
+    let runtimeVersion: String
+}
+
+public enum WhiskyWineInstallerError: LocalizedError {
+    case invalidArchive
+    case invalidChecksum
+    case invalidRelease
+    case releaseUnavailable
+    case unsupportedOS(String)
+    case versionMismatch
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidArchive:
+            "The downloaded runtime is incomplete."
+        case .invalidChecksum:
+            "The downloaded runtime failed its integrity check."
+        case .invalidRelease:
+            "The runtime release metadata is invalid."
+        case .releaseUnavailable:
+            "The runtime release information is unavailable."
+        case .unsupportedOS(let version):
+            "This runtime requires macOS \(version) or later."
+        case .versionMismatch:
+            "The runtime version does not match its release metadata."
+        }
+    }
 }

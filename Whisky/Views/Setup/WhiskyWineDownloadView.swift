@@ -26,8 +26,11 @@ struct WhiskyWineDownloadView: View {
     @State private var downloadSpeed: Double = 0
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
+    @State private var downloadID: UUID?
     @State private var startTime: Date?
+    @State private var errorMessage: String?
     @Binding var tarLocation: URL
+    @Binding var runtimeRelease: WhiskyWineRelease?
     @Binding var path: [SetupStage]
     var body: some View {
         VStack {
@@ -39,9 +42,22 @@ struct WhiskyWineDownloadView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                VStack {
-                    ProgressView(value: fractionProgress, total: 1)
-                    HStack {
+                if let errorMessage {
+                    VStack {
+                        Image(systemName: "xmark.circle")
+                            .resizable()
+                            .foregroundStyle(.red)
+                            .frame(width: 60, height: 60)
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .multilineTextAlignment(.center)
+                        Button("setup.retry") {
+                            startDownload()
+                        }
+                    }
+                } else {
+                    VStack {
+                        ProgressView(value: fractionProgress, total: 1)
                         HStack {
                             Text(String(format: String(localized: "setup.whiskywine.progress"),
                                         formatBytes(bytes: completedBytes),
@@ -56,42 +72,116 @@ struct WhiskyWineDownloadView: View {
                         .font(.subheadline)
                         .monospacedDigit()
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
                 Spacer()
             }
             Spacer()
         }
         .frame(width: 400, height: 200)
         .onAppear {
-            Task {
-                if let url: URL = URL(string: "https://data.vineyardmac.app/Wine/Libraries.tar.gz") {
-                    downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { url, _, _ in
-                        Task.detached {
-                            await MainActor.run {
-                                if let url = url {
-                                    tarLocation = url
-                                    proceed()
-                                }
-                            }
-                        }
+            startDownload()
+        }
+        .onDisappear {
+            cancelDownload()
+        }
+    }
+
+    func startDownload() {
+        cancelDownload()
+        if runtimeRelease != nil {
+            try? FileManager.default.removeItem(at: tarLocation)
+            runtimeRelease = nil
+        }
+        let id = UUID()
+        downloadID = id
+        errorMessage = nil
+        completedBytes = 0
+        totalBytes = 0
+        fractionProgress = 0
+        startTime = Date()
+
+        Task {
+            do {
+                let release = try await WhiskyWineInstaller.whiskyWineRelease()
+                guard downloadID == id else { return }
+                guard let downloadURL = release.downloadURL else {
+                    throw WhiskyWineInstallerError.invalidRelease
+                }
+                let task = makeDownloadTask(from: downloadURL, release: release, id: id)
+                downloadTask = task
+                observeDownloadProgress(task, id: id)
+                task.resume()
+            } catch {
+                guard downloadID == id else { return }
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func makeDownloadTask(
+        from downloadURL: URL,
+        release: WhiskyWineRelease,
+        id: UUID
+    ) -> URLSessionDownloadTask {
+        URLSession(configuration: .ephemeral).downloadTask(with: downloadURL) { url, response, error in
+            do {
+                if let error {
+                    throw error
+                }
+                guard let response = response as? HTTPURLResponse,
+                      200..<300 ~= response.statusCode,
+                      let url else {
+                    throw URLError(.badServerResponse)
+                }
+
+                let savedArchive = FileManager.default.temporaryDirectory
+                    .appending(path: "VineyardMac-\(UUID().uuidString)")
+                    .appendingPathExtension("tar.gz")
+                try FileManager.default.moveItem(at: url, to: savedArchive)
+
+                Task { @MainActor in
+                    guard downloadID == id else {
+                        try? FileManager.default.removeItem(at: savedArchive)
+                        return
                     }
-                    observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
-                        Task {
-                            await MainActor.run {
-                                let currentTime = Date()
-                                let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
-                                if completedBytes > 0 {
-                                    downloadSpeed = Double(completedBytes) / elapsedTime
-                                }
-                                totalBytes = task.countOfBytesExpectedToReceive
-                                completedBytes = task.countOfBytesReceived
-                                fractionProgress = Double(completedBytes) / Double(totalBytes)
-                            }
-                        }
-                    }
-                    startTime = Date()
-                    downloadTask?.resume()
+                    observation?.invalidate()
+                    observation = nil
+                    downloadTask = nil
+                    tarLocation = savedArchive
+                    runtimeRelease = release
+                    proceed()
+                }
+            } catch {
+                Task { @MainActor in
+                    guard downloadID == id else { return }
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func cancelDownload() {
+        downloadID = nil
+        observation?.invalidate()
+        observation = nil
+        downloadTask?.cancel()
+        downloadTask = nil
+    }
+
+    func observeDownloadProgress(_ task: URLSessionDownloadTask, id: UUID) {
+        observation = task.observe(\.countOfBytesReceived) { task, _ in
+            Task { @MainActor in
+                guard downloadID == id else { return }
+                let currentTime = Date()
+                let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
+                if completedBytes > 0 {
+                    downloadSpeed = Double(completedBytes) / elapsedTime
+                }
+                totalBytes = task.countOfBytesExpectedToReceive
+                completedBytes = task.countOfBytesReceived
+                if totalBytes > 0 {
+                    fractionProgress = Double(completedBytes) / Double(totalBytes)
                 }
             }
         }
