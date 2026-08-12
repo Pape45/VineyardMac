@@ -60,7 +60,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - Default branch: `main`
 - Active branch: `runtime-beta2-activation-record`
 - PR `Pape45/VineyardMac#4`, `Adopt verified Gcenx runtime installation`, was merged as `59a33f9d5965009b6ca836da158844bc000148d9` after its macOS build, WhiskyKit tests, and SwiftLint passed.
-- The active branch was created from that merge and records the completed beta.2 activation. No follow-up pull request has been opened.
+- The active branch was created from that merge and records the completed beta.2 activation. PR `Pape45/VineyardMac#5`, `Record beta.2 activation and fix bottle creation`, is open and ready for review against `main`; it is not merged.
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
@@ -185,4 +185,4 @@ Apple's `game-porting-toolkit-compiler` Homebrew formula remains version 0.1 and
 
 ## Recommended Next Decision
 
-After the activation-record branch is reviewed, decide whether to open a pull request. Do not repeat or roll back the successful R2 activation without a new explicit decision. The disposable bottle's post-creation version warning and disabled-action regression are resolved; keep GPTK 4 and broad UI work separate.
+Review PR `Pape45/VineyardMac#5` and merge it only after an explicit maintainer decision and green required checks. Do not repeat or roll back the successful R2 activation without a new explicit decision. The disposable bottle's post-creation version warning and disabled-action regression are resolved; keep GPTK 4 and broad UI work separate.
