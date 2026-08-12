@@ -72,7 +72,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - The resulting app passes `codesign --verify --deep --strict` outside the Codex sandbox.
 - SwiftLint reports zero violations during the Xcode build.
 - `swift test --package-path WhiskyKit` passes four focused tests: the three runtime installer tests and the missing bottle metadata regression test.
-- SwiftLint, bison, LLVM, mingw-w64, pkgconf, Wrangler, and the required Xcode package dependencies were available when last checked. Recheck them after environment changes; do not reinstall automatically.
+- SwiftLint, bison, LLVM, pkgconf, Wrangler, and the required Xcode package dependencies were available when last checked. The 2026-08-12 GPTK 4 audit found no installed `x86_64-w64-mingw32-gcc`; recheck tools after environment changes and do not reinstall automatically.
 
 Current local bundle identifiers are:
 
@@ -169,7 +169,26 @@ The experiment is preserved outside the repository in:
 
 Both GPTK 4 beta 2 disk images were also present in `~/Downloads` when last checked. No separate Vineyard/GPTK recovery ZIP was found. The temporary source trees and hybrid runtime were deliberately not preserved because they are reproducible and tied to the discarded beta toolchain.
 
-Apple's `game-porting-toolkit-compiler` Homebrew formula remains version 0.1 and builds an x86_64 compiler from CrossOver 22.1.1 sources. It is not a GPTK 4-specific compiler and is not required for beta.2 packaging or publication. Do not make its installation a prerequisite. When GPTK 4 work resumes, use a separate branch and first test the complete matching Wine build with the stable Xcode toolchain.
+### Read-only GPTK 4 beta 2 feasibility audit
+
+The audit was repeated on 2026-08-12 without installing, downloading, compiling, executing DMG content, or starting Wine. Apple's current [Game Porting Toolkit page](https://developer.apple.com/games/game-porting-toolkit) identifies GPTK 4 and Metal 4 support. Its current [companion repository](https://github.com/apple/game-porting-toolkit) requires Apple silicon, macOS 27, Xcode 27, and GPTK 4 for its latest Metal debugging and agent workflows; those are not the minimum requirements stated by the beta 2 evaluation environment itself. The mounted beta 2 README requires Apple silicon and macOS 15 or later, recommends at least 16 GB RAM, and reserves `gpucapture` for macOS 27 or later. Apple's [Xcode requirements](https://developer.apple.com/xcode/system-requirements) confirm that the installed Xcode 26.6 is supported on macOS 26.2 through 26.x.
+
+The two local images were verified before read-only mounting:
+
+- `Evaluation_environment_for_Windows_games_4.0_beta_2.dmg`: `26480358` bytes, SHA-256 `6248a0edc61553790753e5e9c060b8e53c940ed197f11409dcc34a35e05becc1`;
+- `Game_Porting_Toolkit_4.0_beta_2.dmg`: `104459838` bytes, SHA-256 `03893ac4fab94ad9ff6aa32e887e2854bbf40fd90796f78a1d9bdbc02526ee5b`.
+
+The toolkit image's embedded evaluation DMG has the same size and SHA-256 as the standalone image. The evaluation payload is D3DMetal `4.0b2` plus x86_64 graphics bridge libraries and Windows DLLs; it does not contain a complete Wine runtime. Mach-O deployment targets are macOS `14.0` for `D3DMetal` and `libd3dshared`, `26.4` for `libdxccontainer`, and `13.0` for `libdxcompiler`, `libdxilconv`, and `libmetalirconverter`. The current Apple silicon Mac has 48 GB RAM and macOS 26.6.1, so it meets the evaluation README and every bundled binary deployment target. Both volumes were detached and the dedicated `/tmp/vineyard-gptk4-audit.skabcj` tree was removed.
+
+Rosetta successfully executed an installed system binary as x86_64. Installed build tools include Xcode 26.6 (`17F113`), Apple clang `21.0.0`, Homebrew LLVM/clang `22.1.8`, GNU Bison `3.8.2`, and pkgconf `3.0.5`. Neither `x86_64-w64-mingw32-gcc` nor Apple's `game-porting-toolkit-compiler` is installed. Apple's current [compiler formula](https://github.com/apple/homebrew-apple/blob/main/Formula/game-porting-toolkit-compiler.rb) remains version `0.1`, builds an x86_64-only clang from CrossOver 22.1.1 sources, and is not GPTK 4-specific; no claim that it fixes the preserved LLVM 22 failure is justified.
+
+The preserved patch and evidence establish three separate gates:
+
+1. **Coherent Wine build — blocked, and the first real blocker.** The patch adds the two required exports and its PE DLLs built, but the hybrid runtime proved that PE `ntdll.dll` and Unix `ntdll.so` must come from the same build (`syscall count mismatch 232 / 233`). The matching native build then failed under the still-installed LLVM 22.1.8 on the two non-private syscall-dispatcher labels inside CFI blocks. There is no preserved or reproducibly demonstrated complete matching runtime, and today's host also lacks the PE cross-compiler.
+2. **D3D11/D3D12 smoke — not open.** It depends on gate 1. The preserved D3D11 and D3D12 logs both end in the same null-read page fault and WineDbg attachment; they are failure evidence, not smoke passes.
+3. **VineyardMac integration — not open.** It depends on a coherent runtime passing both graphics smoke tests. Only then can required files, manifest/version metadata, packaging, installer validation, and a disposable-bottle fresh setup be assessed without touching existing bottles.
+
+Verdict: GPTK 4 integration remains technically plausible but is not currently demonstrable. Resolve and prove the complete matching Wine build first; do not change VineyardMac or attempt runtime packaging before gates 1 and 2 pass.
 
 ## Known Product State
 
