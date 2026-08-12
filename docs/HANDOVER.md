@@ -119,6 +119,8 @@ Public access on this download bucket is intentional. Production safety comes fr
 
 `scripts/build-runtime.sh` keeps the generated archive name `Libraries.tar.gz` for local output and the mutable legacy upload, but writes the matching immutable `Wine/archive/Libraries-<version>.tar.gz` URL into `WhiskyWineVersion.plist`.
 
+### Historical beta.2 activation
+
 Beta.2 was activated on 2026-08-11. Public R2 now contains:
 
 - unchanged immutable `Wine/archive/Libraries-4.0.0-beta.2.tar.gz`, `404974593` bytes, SHA-256 `86f9a7f6280b1648e5a7a640023a3a443870c882fdd214c062ce60b344004ef4`, ETag `e8c5990b55345d80952c28843c1d5f44-13`;
@@ -130,22 +132,27 @@ Wrangler 4.120.0 refused the 386 MiB local upload because `r2 object put` is cap
 
 The signed Debug app then completed a genuinely fresh graphical setup from an initially absent local runtime. The installed runtime reports `4.0.0-beta.2+2`, and its manifest matches the repository. A bottle created only under `/Users/pape/Documents/VineyardMac-Activation-2026-08-11/` initialized successfully and launched `winecfg.exe`; its reference, files, and targeted Wine processes were removed afterward. The app was closed, while the installed beta.2 runtime remains in Application Support. No rollback was needed and no existing bottle was touched. Beta.1 rollback files remain under `/Users/pape/Documents/VineyardMac-Activation-2026-08-11/backups/r2/`.
 
+For that historical beta.2 activation, the previous public version was beta.1. Its release plist lacked the complete metadata required by the strict installer, so a beta.1 rollback would have protected older clients only. Strict app distribution and successful strict fresh-setup claims would have remained suspended until a fully validatable runtime was published under a new immutable key.
+
+Do not rebuild beta.2 merely because the local source downloads are absent. The immutable uploaded artifact already exists and was verified; any future mismatch requires a new version and key, not replacement of beta.2.
+
 Bottle creation was corrected and graphically retested on 2026-08-12. Missing `Metadata.plist` is now created and persisted with the default Wine version `7.7.0`; creation stays on the main actor, preserves the same `Bottle` object, and publishes its available state without reloading the bottle list. A disposable bottle had active actions immediately and after a full app relaunch, then launched `winecfg.exe`. Its reference, files, and targeted Wine processes were removed afterward; no existing bottle was touched.
+
+### Future activation procedure
 
 For future runtime activations, keep this order:
 
-1. Prepare the complete release plist pointing directly to the immutable beta.2 URL.
-2. Before activation, verify its version, URL, and SHA-256 against the archive; extract the archive, validate its required files, embedded version, and manifest, and run the disposable-prefix smoke tests.
-3. Treat the versioned key as immutable: because the beta.2 key already exists, only verify its status, exact size, and SHA-256. If either size or SHA-256 differs, stop and use a new runtime version and immutable key; never overwrite beta.2.
-4. Preserve the previous release plist and mutable archive for rollback.
-5. Upload the validated bytes to mutable `Wine/Libraries.tar.gz` for older clients and verify its SHA-256.
-6. Upload the matching root `RuntimeManifest.json` if the public copy is missing or stale.
-7. Upload `WhiskyWineVersion.plist` last because current clients treat it as the release pointer.
-8. Immediately remove the local app/runtime state, perform a genuinely fresh graphical setup test, create a bottle, and launch `winecfg` or the DirectX smoke executable before considering the runtime active.
+1. Define the runtime being activated as the target version and the runtime referenced before any mutation as the previous public version.
+2. Prepare the complete target release plist pointing directly to its versioned immutable URL. Verify its version, URL, and SHA-256 against the archive; extract the archive, validate its required files, embedded version, and manifest, and run the disposable-prefix smoke tests.
+3. Stop the app and its Wine processes. Record whether the managed local `Libraries` runtime exists; move it whole to an explicit backup if present, or record its absence. Never touch bottles or bottle-list files.
+4. Before any R2 mutation, download and verify exact rollback copies of the previous public `Wine/WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz`. Save and verify the previous root `Wine/RuntimeManifest.json`, or record and verify its absence if it returns 404.
+5. Treat every versioned key as immutable. Upload the target key only if it does not exist; otherwise verify its exact size and SHA-256. On any mismatch, stop and use a new target version and key; never overwrite an existing versioned key.
+6. Upload the validated target bytes to mutable `Wine/Libraries.tar.gz` for older clients and verify its public SHA-256.
+7. Upload the matching target `Wine/RuntimeManifest.json` and verify it byte for byte.
+8. Upload the target `Wine/WhiskyWineVersion.plist` last and verify every public field because current clients treat it as the release pointer.
+9. Immediately perform a genuinely fresh graphical setup test, create only a disposable bottle, and launch `winecfg` or the DirectX smoke executable before considering the target version active.
 
-If the immediate acceptance test fails, restore the previous beta.1 `WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz` and verify both remote objects. This rollback protects older clients only: the strict installer rejects beta.1's incomplete metadata. After rollback, do not distribute a new strict app or report a strict fresh setup as successful. Resume only with a fully validatable runtime under a new immutable key. Keep the failed immutable beta.2 object unchanged for diagnosis.
-
-Do not rebuild beta.2 merely because the local source downloads are absent. The immutable uploaded artifact already exists and was verified; any future mismatch requires a new version and key, not replacement of beta.2.
+If publication or acceptance fails after the first R2 mutation, restore the previous public version exactly: restore and verify its saved plist first, restore and verify its saved mutable archive, then restore the root manifest to its saved bytes or to verified absence. Stop only the app and test-prefix Wine processes, quarantine any newly installed target runtime, and move the saved local runtime back unchanged; if it was previously absent, restore that absence. Never touch bottles or bottle lists, and keep all versioned immutable keys unchanged.
 
 ## GPTK 4 Investigation
 
