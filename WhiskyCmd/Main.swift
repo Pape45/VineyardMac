@@ -19,7 +19,6 @@
 import Foundation
 import WhiskyKit
 import SwiftyTextTable
-import SemanticVersion
 import ArgumentParser
 
 @main
@@ -73,7 +72,6 @@ extension Whisky {
                 // Should allow customisation
                 bottle.settings.windowsVersion = .win10
                 bottle.settings.name = name
-                bottle.settings.wineVersion = SemanticVersion(0, 0, 0)
 
                 var bottlesList = BottleData()
                 bottlesList.paths.append(bottleURL)
@@ -92,7 +90,19 @@ extension Whisky {
         mutating func run() throws {
             // Should be sanitised
             let bottleURL = URL(filePath: path)
-            let settings = try BottleSettings.decode(from: bottleURL.appending(path: "Metadata.plist"))
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: bottleURL.path(percentEncoded: false),
+                                                 isDirectory: &isDirectory),
+                  isDirectory.boolValue else {
+                throw ValidationError("Bottle directory does not exist.")
+            }
+
+            let metadataURL = bottleURL.appending(path: "Metadata.plist")
+            guard FileManager.default.fileExists(atPath: metadataURL.path(percentEncoded: false)) else {
+                throw ValidationError("Bottle Metadata.plist does not exist.")
+            }
+
+            let settings = try BottleSettings.decode(from: metadataURL)
             var bottlesList = BottleData()
             bottlesList.paths.append(bottleURL)
             print("Bottle \"\(settings.name)\" added.")

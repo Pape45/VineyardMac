@@ -136,7 +136,7 @@ For that historical beta.2 activation, the previous public version was beta.1. I
 
 Do not rebuild beta.2 merely because the local source downloads are absent. The immutable uploaded artifact already exists and was verified; any future mismatch requires a new version and key, not replacement of beta.2.
 
-Bottle creation was corrected and graphically retested on 2026-08-12. Missing `Metadata.plist` is now created and persisted with the default Wine version `7.7.0`; creation stays on the main actor, preserves the same `Bottle` object, and publishes its available state without reloading the bottle list. A disposable bottle had active actions immediately and after a full app relaunch, then launched `winecfg.exe`. Its reference, files, and targeted Wine processes were removed afterward; no existing bottle was touched.
+Bottle creation was corrected and graphically retested on 2026-08-12. Missing `Metadata.plist` is now created and persisted with the default Wine version `7.7.0`; creation stays on the main actor, preserves the same `Bottle` object, and publishes its available state without reloading the bottle list. If a new creation fails, the app best-effort stops only that new prefix, removes only its newly created UUID directory, and removes its in-flight UI object without touching the parent or any pre-existing bottle. `WhiskyCmd create` keeps the model's `7.7.0` default, while `WhiskyCmd add` rejects a missing bottle directory or `Metadata.plist` before decoding or changing `BottleData`. A disposable bottle had active actions immediately and after a full app relaunch, then launched `winecfg.exe`. Its reference, files, and targeted Wine processes were removed afterward; no existing bottle was touched.
 
 ### Future activation procedure
 
@@ -144,15 +144,15 @@ For future runtime activations, keep this order:
 
 1. Define the runtime being activated as the target version and the runtime referenced before any mutation as the previous public version.
 2. Prepare the complete target release plist pointing directly to its versioned immutable URL. Verify its version, URL, and SHA-256 against the archive; extract the archive, validate its required files, embedded version, and manifest, and run the disposable-prefix smoke tests.
-3. Stop the app and its Wine processes. Record whether the managed local `Libraries` runtime exists; move it whole to an explicit backup if present, or record its absence. Never touch bottles or bottle-list files.
+3. Stop the app and its Wine processes. Record whether the managed local `Libraries` runtime exists; move it whole to an explicit backup if present, or record its absence. Never touch a pre-existing bottle or bottle-list entry; only the later explicitly tracked disposable acceptance bottle and its new reference may be created and removed.
 4. Before any R2 mutation, download and verify exact rollback copies of the previous public `Wine/WhiskyWineVersion.plist` and `Wine/Libraries.tar.gz`. Save and verify the previous root `Wine/RuntimeManifest.json`, or record and verify its absence if it returns 404.
 5. Treat every versioned key as immutable. Upload the target key only if it does not exist; otherwise verify its exact size and SHA-256. On any mismatch, stop and use a new target version and key; never overwrite an existing versioned key.
 6. Upload the validated target bytes to mutable `Wine/Libraries.tar.gz` for older clients and verify its public SHA-256.
 7. Upload the matching target `Wine/RuntimeManifest.json` and verify it byte for byte.
 8. Upload the target `Wine/WhiskyWineVersion.plist` last and verify every public field because current clients treat it as the release pointer.
-9. Immediately perform a genuinely fresh graphical setup test, create only a disposable bottle, and launch `winecfg` or the DirectX smoke executable before considering the target version active.
+9. Immediately perform a genuinely fresh graphical setup test, create one explicitly tracked disposable bottle, and launch `winecfg` or the DirectX smoke executable before considering the target version active. Then stop only its processes, delete only its directory, and remove only its matching reference.
 
-If publication or acceptance fails after the first R2 mutation, restore the previous public version exactly: restore and verify its saved plist first, restore and verify its saved mutable archive, then restore the root manifest to its saved bytes or to verified absence. Stop only the app and test-prefix Wine processes, quarantine any newly installed target runtime, and move the saved local runtime back unchanged; if it was previously absent, restore that absence. Never touch bottles or bottle lists, and keep all versioned immutable keys unchanged.
+If publication or acceptance fails after the first R2 mutation, restore the previous public version exactly: restore and verify its saved mutable archive, restore and verify the root manifest to its saved bytes or to verified absence, then restore and verify its saved plist last as the release pointer. Stop only the app and test-prefix Wine processes, remove only the explicitly tracked disposable bottle and its matching reference if created, quarantine any newly installed target runtime, and move the saved local runtime back unchanged; if it was previously absent, restore that absence. Never touch a pre-existing bottle or reference, and keep all versioned immutable keys unchanged.
 
 ## GPTK 4 Investigation
 

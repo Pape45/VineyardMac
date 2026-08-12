@@ -32,12 +32,14 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 - Active runtime `4.0.0-beta.2` uses Gcenx Game Porting Toolkit 3.0-3, keeps DXVK support, and includes its component manifest and licenses.
 - Runtime builds keep the local and legacy filename `Libraries.tar.gz`, while generated release metadata points to the versioned immutable archive URL.
 - Future activation procedures distinguish the target version from the previous public version, prevalidate locally, verify-only any existing immutable key, require a new version and key on any size or SHA-256 mismatch, publish the release pointer last, and run an immediate fresh setup test.
-- Before publication, activation preserves exact rollback states for the public plist, mutable archive, and root manifest, including a missing manifest, and moves any managed local runtime to a reversible backup without touching bottles or bottle lists.
-- A failed activation restores and verifies all three previous public states, restores the prior local runtime or its absence, and leaves every versioned immutable key unchanged.
+- Before publication, activation preserves exact rollback states for the public plist, mutable archive, and root manifest, including a missing manifest, and moves any managed local runtime to a reversible backup without touching pre-existing bottles or references.
+- Acceptance may create and then remove only one explicitly tracked disposable bottle and its matching new reference. It never modifies a pre-existing bottle or reference.
+- A failed activation restores and verifies the previous mutable archive, then the previous root manifest bytes or absence, and finally the previous plist as the release pointer; it also restores the prior local runtime or its absence and leaves every versioned immutable key unchanged.
 - For the historical beta.2 activation, rolling back to beta.1 would have protected older clients only because beta.1 metadata was incomplete. Strict app distribution and successful strict fresh-setup claims would have waited for a fully validatable runtime under a new immutable key.
 - The immutable beta.2 archive, mutable legacy archive, root manifest, and complete beta.2 release pointer are published. The immediate strict fresh setup, disposable-bottle creation, and `winecfg` acceptance test passed on 2026-08-11.
 - Wrangler cannot upload this 386 MiB archive directly because `r2 object put` is capped at 300 MiB. The documented activation path streams the already verified immutable object to the mutable key through an ephemeral R2-bound Worker, then verifies the public SHA-256.
 - Git history no longer embeds the retired `Whisky/Libraries/Wine` runtime payload.
+- Failed app bottle creation best-effort stops only the attempted prefix, removes only its new UUID directory and UI object, and preserves the parent and every pre-existing bottle. `WhiskyCmd create` keeps Wine `7.7.0`, while `WhiskyCmd add` rejects missing directories or metadata before changing `BottleData`.
 - Unfinished CLI export/install/uninstall stubs and the unused Progress.swift dependency have been removed.
 - Several runtime errors are still reported with `print` instead of user-facing diagnostics.
 - `Bottle`, `Program`, and `BottleVM` use `@unchecked Sendable`; treat this as concurrency debt.
