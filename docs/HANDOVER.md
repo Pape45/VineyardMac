@@ -1,6 +1,6 @@
 # VineyardMac Maintainer Handover
 
-Last verified: 2026-08-11
+Last verified: 2026-08-12
 
 This is the operational handover for future coordinating and working agents. It records current facts, completed work, known blockers, and the safest next steps. Verify volatile facts such as Git status, pull request state, CI, remote files, and installed tools before acting.
 
@@ -72,7 +72,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - A signed Debug build succeeds for the app, CLI, and thumbnail extension.
 - The resulting app passes `codesign --verify --deep --strict` outside the Codex sandbox.
 - SwiftLint reports zero violations during the Xcode build.
-- `swift test --package-path WhiskyKit` passes the three runtime installer tests.
+- `swift test --package-path WhiskyKit` passes four focused tests: the three runtime installer tests and the missing bottle metadata regression test.
 - SwiftLint, bison, LLVM, mingw-w64, pkgconf, Wrangler, and the required Xcode package dependencies were available when last checked. Recheck them after environment changes; do not reinstall automatically.
 
 Current local bundle identifiers are:
@@ -130,7 +130,7 @@ Wrangler 4.120.0 refused the 386 MiB local upload because `r2 object put` is cap
 
 The signed Debug app then completed a genuinely fresh graphical setup from an initially absent local runtime. The installed runtime reports `4.0.0-beta.2+2`, and its manifest matches the repository. A bottle created only under `/Users/pape/Documents/VineyardMac-Activation-2026-08-11/` initialized successfully and launched `winecfg.exe`; its reference, files, and targeted Wine processes were removed afterward. The app was closed, while the installed beta.2 runtime remains in Application Support. No rollback was needed and no existing bottle was touched. Beta.1 rollback files remain under `/Users/pape/Documents/VineyardMac-Activation-2026-08-11/backups/r2/`.
 
-One follow-up risk remains: after bottle initialization the app logged `Bottle has a different wine version` and left that bottle's action buttons disabled, although direct `winecfg` launch with the same prefix succeeded. Investigate this separately; it did not invalidate runtime installation or Wine execution.
+Bottle creation was corrected and graphically retested on 2026-08-12. Missing `Metadata.plist` is now created and persisted with the default Wine version `7.7.0`; creation stays on the main actor, preserves the same `Bottle` object, and publishes its available state without reloading the bottle list. A disposable bottle had active actions immediately and after a full app relaunch, then launched `winecfg.exe`. Its reference, files, and targeted Wine processes were removed afterward; no existing bottle was touched.
 
 For future runtime activations, keep this order:
 
@@ -178,4 +178,4 @@ Apple's `game-porting-toolkit-compiler` Homebrew formula remains version 0.1 and
 
 ## Recommended Next Decision
 
-After the activation-record branch is reviewed, decide whether to open a documentation pull request. Do not repeat or roll back the successful R2 activation without a new explicit decision. Investigate the disposable bottle's post-creation version warning separately before returning to GPTK 4 or starting a broad UI refactor.
+After the activation-record branch is reviewed, decide whether to open a pull request. Do not repeat or roll back the successful R2 activation without a new explicit decision. The disposable bottle's post-creation version warning and disabled-action regression are resolved; keep GPTK 4 and broad UI work separate.

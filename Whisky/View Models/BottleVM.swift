@@ -17,7 +17,6 @@
 //
 
 import Foundation
-import SemanticVersion
 import WhiskyKit
 
 // swiftlint:disable:next todo
@@ -33,38 +32,31 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
         bottles = bottlesList.loadBottles()
     }
 
+    @MainActor
     func createNewBottle(bottleName: String, winVersion: WinVersion, bottleURL: URL) -> URL {
         let newBottleDir = bottleURL.appending(path: UUID().uuidString)
 
-        Task.detached {
-            var bottleId: Bottle?
+        Task { @MainActor in
+            var bottle: Bottle?
             do {
                 try FileManager.default.createDirectory(atPath: newBottleDir.path(percentEncoded: false),
                                                         withIntermediateDirectories: true)
-                let bottle = Bottle(bottleUrl: newBottleDir, inFlight: true)
-                bottleId = bottle
+                let newBottle = Bottle(bottleUrl: newBottleDir, inFlight: true)
+                bottle = newBottle
+                self.bottles.append(newBottle)
 
-                await MainActor.run {
-                    self.bottles.append(bottle)
-                }
-
-                bottle.settings.windowsVersion = winVersion
-                bottle.settings.name = bottleName
-                try await Wine.changeWinVersion(bottle: bottle, win: winVersion)
-                let wineVer = try await Wine.wineVersion()
-                bottle.settings.wineVersion = SemanticVersion(wineVer) ?? SemanticVersion(0, 0, 0)
-                // Add record
-                await MainActor.run {
-                    self.bottlesList.paths.append(newBottleDir)
-                    self.loadBottles()
-                }
+                newBottle.settings.windowsVersion = winVersion
+                newBottle.settings.name = bottleName
+                try await Wine.changeWinVersion(bottle: newBottle, win: winVersion)
+                self.bottlesList.paths.append(newBottleDir)
+                newBottle.isAvailable = true
+                newBottle.inFlight = false
+                self.bottles = self.bottles
             } catch {
                 print("Failed to create new bottle: \(error)")
-                if let bottle = bottleId {
-                    await MainActor.run {
-                        if let index = self.bottles.firstIndex(of: bottle) {
-                            self.bottles.remove(at: index)
-                        }
+                if let bottle {
+                    if let index = self.bottles.firstIndex(of: bottle) {
+                        self.bottles.remove(at: index)
                     }
                 }
             }
