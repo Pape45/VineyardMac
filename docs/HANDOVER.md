@@ -59,7 +59,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - Original upstream: `https://github.com/Whisky-App/Whisky`
 - Default branch: `main`
 - PR `Pape45/VineyardMac#4`, `Adopt verified Gcenx runtime installation`, was merged as `59a33f9d5965009b6ca836da158844bc000148d9` after its macOS build, WhiskyKit tests, and SwiftLint passed.
-- PR `Pape45/VineyardMac#5`, `Record beta.2 activation and fix bottle creation`, contains the completed beta.2 activation record and bottle-creation fixes.
+- PR `Pape45/VineyardMac#5`, `Record beta.2 activation and fix bottle creation`, was merged as `95cb04223d74ef6d63644a9ca6c1ff6e91a64c6a` with the completed beta.2 activation record and bottle-creation fixes.
 - The GitHub CLI is authenticated as `Pape45` with `repo` and `workflow` access.
 - Because both `origin` and the archived Whisky `upstream` exist, always pass `--repo Pape45/VineyardMac` to `gh pr` commands. An unqualified `gh pr view 4` previously resolved to the unrelated Whisky PR #4.
 
@@ -180,15 +180,19 @@ The two local images were verified before read-only mounting:
 
 The toolkit image's embedded evaluation DMG has the same size and SHA-256 as the standalone image. The evaluation payload is D3DMetal `4.0b2` plus x86_64 graphics bridge libraries and Windows DLLs; it does not contain a complete Wine runtime. Mach-O deployment targets are macOS `14.0` for `D3DMetal` and `libd3dshared`, `26.4` for `libdxccontainer`, and `13.0` for `libdxcompiler`, `libdxilconv`, and `libmetalirconverter`. The current Apple silicon Mac has 48 GB RAM and macOS 26.6.1, so it meets the evaluation README and every bundled binary deployment target. Both volumes were detached and the dedicated `/tmp/vineyard-gptk4-audit.skabcj` tree was removed.
 
-Rosetta successfully executed an installed system binary as x86_64. Installed build tools include Xcode 26.6 (`17F113`), Apple clang `21.0.0`, Homebrew LLVM/clang `22.1.8`, GNU Bison `3.8.2`, and pkgconf `3.0.5`. Neither `x86_64-w64-mingw32-gcc` nor Apple's `game-porting-toolkit-compiler` is installed. Apple's current [compiler formula](https://github.com/apple/homebrew-apple/blob/main/Formula/game-porting-toolkit-compiler.rb) remains version `0.1`, builds an x86_64-only clang from CrossOver 22.1.1 sources, and is not GPTK 4-specific; no claim that it fixes the preserved LLVM 22 failure is justified.
+Rosetta successfully executed an installed system binary as x86_64. Installed build tools include Xcode 26.6 (`17F113`), Apple clang `21.0.0`, Homebrew LLVM/clang `22.1.8`, GNU Bison `3.8.2`, and pkgconf `3.0.5`. Neither `x86_64-w64-mingw32-gcc` nor Apple's `game-porting-toolkit-compiler` is installed locally. Apple's current [compiler formula](https://github.com/apple/homebrew-apple/blob/main/Formula/game-porting-toolkit-compiler.rb) remains version `0.1`, builds an x86_64-only clang from CrossOver 22.1.1 sources, and is not GPTK 4-specific.
+
+The separate `/Users/pape/Projects/VineyardMac-Wine` repository was verified clean on `main` at `32ff36ff90a5ff10b7ee860aaa65d8b0808e9207`. That history contains CFI fix `2ed827dba3f8d9fd6e670dba2764e8d00b6bda87`, and GitHub Actions run [`28681593163`](https://github.com/Pape45/VineyardMac-Wine/actions/runs/28681593163) successfully configured, built, and packaged complete matching wine64 and wine32on64 outputs. Its `Libraries` artifact is not expired and remains available until 2026-10-01. This proves the coherent Wine build path and removes the CFI assembler failure as the first blocker.
+
+That successful artifact is not GPTK 4 beta 2-ready: the repository still packages D3DMetal `4.0b1`, and its current source contains neither `__wine_unix_call_dispatcher` nor `D3DKMTEnumAdapters2`. The preserved beta 2 backport therefore remains relevant, but must be applied to this demonstrated build path instead of assembling a hybrid runtime.
 
 The preserved patch and evidence establish three separate gates:
 
-1. **Coherent Wine build — blocked, and the first real blocker.** The patch adds the two required exports and its PE DLLs built, but the hybrid runtime proved that PE `ntdll.dll` and Unix `ntdll.so` must come from the same build (`syscall count mismatch 232 / 233`). The matching native build then failed under the still-installed LLVM 22.1.8 on the two non-private syscall-dispatcher labels inside CFI blocks. There is no preserved or reproducibly demonstrated complete matching runtime, and today's host also lacks the PE cross-compiler.
-2. **D3D11/D3D12 smoke — not open.** It depends on gate 1. The preserved D3D11 and D3D12 logs both end in the same null-read page fault and WineDbg attachment; they are failure evidence, not smoke passes.
+1. **Coherent Wine build — demonstrated.** `VineyardMac-Wine` CI built matching wine64 and wine32on64 outputs after the CFI fix. The next build gate is a minimal beta 2 port in that repository: replace the tracked beta 1 evaluation payload, add the two absent exports, rebuild the complete matching runtime, and verify the resulting artifact.
+2. **D3D11/D3D12 smoke — not open.** It depends on the rebuilt beta 2 artifact from gate 1. The preserved D3D11 and D3D12 logs both end in the same null-read page fault and WineDbg attachment; they are failure evidence, not smoke passes.
 3. **VineyardMac integration — not open.** It depends on a coherent runtime passing both graphics smoke tests. Only then can required files, manifest/version metadata, packaging, installer validation, and a disposable-bottle fresh setup be assessed without touching existing bottles.
 
-Verdict: GPTK 4 integration remains technically plausible but is not currently demonstrable. Resolve and prove the complete matching Wine build first; do not change VineyardMac or attempt runtime packaging before gates 1 and 2 pass.
+Verdict: the coherent build route is already proven. Next work belongs only in `VineyardMac-Wine`: minimally port beta 2 and its required exports, rebuild through the existing CI path, then run D3D11/D3D12 smoke tests. Do not change VineyardMac or attempt runtime integration before those smoke tests pass.
 
 ## Known Product State
 
