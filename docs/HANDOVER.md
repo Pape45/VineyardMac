@@ -1,6 +1,6 @@
 # VineyardMac Maintainer Handover
 
-Last verified: 2026-08-13
+Last verified: 2026-08-14
 
 This is the operational handover for future coordinating and working agents. It records current facts, completed work, known blockers, and the safest next steps. Verify volatile facts such as Git status, pull request state, CI, remote files, and installed tools before acting.
 
@@ -203,6 +203,8 @@ The candidate `Libraries.tar.gz` is `271043970` bytes with SHA-256 `066edfdf3024
 The accepted artifact set from commit `ff85d649d8b722f709f9b134b2d1c4eba85281cd` is frozen unchanged under `/Users/pape/Documents/VineyardMac-Recovery-2026-07-30/runtime-candidates/4.0.0-beta.3+3-ff85d649d8b722f709f9b134b2d1c4eba85281cd/`. That directory contains only the four publishable files above and `PROVENANCE.md` at SHA-256 `cab0b39d8466c7e6082626b5eafd531d4b58e342ec193d97cdc77d05766669a5`; the verified GitHub ZIP containers were removed. The versioned beta.3 key returned HTTP 404 before and after this freeze, and no R2 object changed.
 
 Wine workflow commit `02cd2cfb493f47c874baa1e7e10377d66ae3f3ff` removed the `upload_to_r2` dispatch input, the complete R2 upload step, and its variables and secrets while retaining manual dispatch and the four runtime artifact uploads. CI run [`31738118046`](https://github.com/Pape45/VineyardMac-Wine/actions/runs/31738118046) passed `sdk-smoke` and the complete wine64/wine32on64 build, and its executed step list contains no R2 action. Its rebuilt artifacts are not qualified automatically; the accepted candidate remains exactly the frozen `ff85d649d8b722f709f9b134b2d1c4eba85281cd` set.
+
+Non-draft [`Pape45/VineyardMac-Wine#1`](https://github.com/Pape45/VineyardMac-Wine/pull/1), `Add qualified GPTK 4 beta 2 runtime candidate`, is open from `gptk4-beta2-coherent-build` to `main` at head `02cd2cfb493f47c874baa1e7e10377d66ae3f3ff`. It records the qualified candidate and its validation, Apple redistribution constraints, the single-adapter and zero-LUID limitations, unverified multi-GPU behavior, and removal of the R2 publication path. It is not merged.
 
 All 4,612 checksum entries passed. The archive has one confined `Libraries` root, 518 directories, 11 internal symlinks, no hardlinks, all 18 strict-installer files, executable `wine64` and `wineserver`, and byte-identical Apple notices and required Wine licenses. The prior smoke artifact's 4,604 files remain; the candidate adds exactly two DXVK `d3d9.dll` files, one manifest, three Apple notices, and two Wine license files. Of 141 comparable graphics binaries, 23 were byte-identical and 118 changed across the clean rebuild; two DXVK `d3d9.dll` files were added and none removed. The smoke-critical D3DMetal, `libd3dshared`, MoltenVK, x86_64 `d3d11.dll`, `d3d12.dll`, `dxgi.dll`, and `win32u.dll` remained byte-identical, while `gdi32.dll` and `ntdll.dll` changed.
 
