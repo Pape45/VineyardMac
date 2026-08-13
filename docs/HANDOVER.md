@@ -1,6 +1,6 @@
 # VineyardMac Maintainer Handover
 
-Last verified: 2026-08-12
+Last verified: 2026-08-13
 
 This is the operational handover for future coordinating and working agents. It records current facts, completed work, known blockers, and the safest next steps. Verify volatile facts such as Git status, pull request state, CI, remote files, and installed tools before acting.
 
@@ -182,17 +182,19 @@ The toolkit image's embedded evaluation DMG has the same size and SHA-256 as the
 
 Rosetta successfully executed an installed system binary as x86_64. Installed build tools include Xcode 26.6 (`17F113`), Apple clang `21.0.0`, Homebrew LLVM/clang `22.1.8`, GNU Bison `3.8.2`, and pkgconf `3.0.5`. Neither `x86_64-w64-mingw32-gcc` nor Apple's `game-porting-toolkit-compiler` is installed locally. Apple's current [compiler formula](https://github.com/apple/homebrew-apple/blob/main/Formula/game-porting-toolkit-compiler.rb) remains version `0.1`, builds an x86_64-only clang from CrossOver 22.1.1 sources, and is not GPTK 4-specific.
 
-The separate `/Users/pape/Projects/VineyardMac-Wine` repository was verified clean on `main` at `32ff36ff90a5ff10b7ee860aaa65d8b0808e9207`. That history contains CFI fix `2ed827dba3f8d9fd6e670dba2764e8d00b6bda87`, and GitHub Actions run [`28681593163`](https://github.com/Pape45/VineyardMac-Wine/actions/runs/28681593163) successfully configured, built, and packaged complete matching wine64 and wine32on64 outputs. Its `Libraries` artifact is not expired and remains available until 2026-10-01. This proves the coherent Wine build path and removes the CFI assembler failure as the first blocker.
+The separate `/Users/pape/Projects/VineyardMac-Wine` repository was verified clean on `main` at `32ff36ff90a5ff10b7ee860aaa65d8b0808e9207`. That history contains CFI fix `2ed827dba3f8d9fd6e670dba2764e8d00b6bda87`, and GitHub Actions run [`28681593163`](https://github.com/Pape45/VineyardMac-Wine/actions/runs/28681593163) successfully configured, built, and packaged complete matching wine64 and wine32on64 outputs. This proved the coherent Wine build path and removed the CFI assembler failure as the first blocker.
 
-That successful artifact is not GPTK 4 beta 2-ready: the repository still packages D3DMetal `4.0b1`, and its current source contains neither `__wine_unix_call_dispatcher` nor `D3DKMTEnumAdapters2`. The preserved beta 2 backport therefore remains relevant, but must be applied to this demonstrated build path instead of assembling a hybrid runtime.
+Branch `gptk4-beta2-coherent-build` now records the minimal beta 2 port as commit `272c63cc1276d6392064a45164e6c2df4ad2121f`. Apple's GPTK license sections 2A(iii) and 2C permit non-commercial distribution of the Apple Software and separate Redistributables; the exact beta 2 redist, `License.rtf`, `Acknowledgements.rtf`, and `Read Me.rtf` were retained without altering Apple binaries. D3DMetal reports `4.0b2`, the source exports both `__wine_unix_call_dispatcher` and `D3DKMTEnumAdapters2`, and the existing CFI fix remains unchanged.
+
+Wine CI run [`31645682029`](https://github.com/Pape45/VineyardMac-Wine/actions/runs/31645682029) successfully built and packaged matching wine64 and wine32on64 outputs. Its unexpired `Libraries` artifact has ID `9163126162`, size `266840688` bytes, and expiry 2026-11-10; the artifact was not downloaded or executed during this task. The R2 upload step was skipped, as required.
 
 The preserved patch and evidence establish three separate gates:
 
-1. **Coherent Wine build — demonstrated.** `VineyardMac-Wine` CI built matching wine64 and wine32on64 outputs after the CFI fix. The next build gate is a minimal beta 2 port in that repository: replace the tracked beta 1 evaluation payload, add the two absent exports, rebuild the complete matching runtime, and verify the resulting artifact.
-2. **D3D11/D3D12 smoke — not open.** It depends on the rebuilt beta 2 artifact from gate 1. The preserved D3D11 and D3D12 logs both end in the same null-read page fault and WineDbg attachment; they are failure evidence, not smoke passes.
+1. **Coherent Wine build — passed in CI.** `VineyardMac-Wine` built matching wine64 and wine32on64 outputs with GPTK 4 beta 2, both required exports, and the preserved CFI fix. The resulting artifact exists but has not yet been independently inspected or run.
+2. **D3D11/D3D12 smoke — next gate.** Test the new CI artifact in a disposable prefix. The preserved earlier D3D11 and D3D12 logs both end in the same null-read page fault and WineDbg attachment; they remain failure evidence for the discarded hybrid runtime, not results for this coherent build.
 3. **VineyardMac integration — not open.** It depends on a coherent runtime passing both graphics smoke tests. Only then can required files, manifest/version metadata, packaging, installer validation, and a disposable-bottle fresh setup be assessed without touching existing bottles.
 
-Verdict: the coherent build route is already proven. Next work belongs only in `VineyardMac-Wine`: minimally port beta 2 and its required exports, rebuild through the existing CI path, then run D3D11/D3D12 smoke tests. Do not change VineyardMac or attempt runtime integration before those smoke tests pass.
+Verdict: coherent GPTK 4 beta 2 build is now demonstrated in CI. D3D11/D3D12 smoke testing of that exact artifact is the next gate. Do not attempt VineyardMac runtime integration before both smoke tests pass. Public redistribution must remain non-commercial and retain Apple's notices.
 
 ## Known Product State
 
