@@ -26,11 +26,102 @@ public enum ProcessOutput: Hashable {
     case terminated(Process)
 }
 
+enum ProcessLogRedactor {
+    static let marker = "<redacted>"
+
+    private static let sensitiveTerms = [
+        "token", "secret", "password", "passwd", "credential", "cookie",
+        "authorization", "apikey", "accesskey", "privatekey", "sessionid", "sessionkey"
+    ]
+
+    static func arguments(_ arguments: [String]) -> [String] {
+        var redactNext = false
+
+        return arguments.map { argument in
+            if redactNext {
+                redactNext = false
+                return marker
+            }
+
+            if argument.hasPrefix("-") || argument.hasPrefix("/"),
+               !argument.contains("="), !argument.contains(":"),
+               isSensitiveName(argument) {
+                redactNext = true
+                return singleLine(argument)
+            }
+
+            return singleLine(redactInlineValue(in: argument))
+        }
+    }
+
+    static func argumentsDescription(_ arguments: [String]) -> String {
+        self.arguments(arguments).joined(separator: " ")
+    }
+
+    static func commandLine(_ command: String) -> String {
+        argumentsDescription(command.split(whereSeparator: \.isWhitespace).map(String.init))
+    }
+
+    static func environment(_ environment: [String: String]) -> [String: String] {
+        environment.reduce(into: [:]) { result, entry in
+            result[entry.key] = isSensitiveName(entry.key) ? marker : redactInlineValue(in: entry.value)
+        }
+    }
+
+    static func environmentDescription(_ environment: [String: String]) -> String {
+        let redacted = self.environment(environment)
+        return redacted.keys.sorted().map { key in
+            "\(key)=\(singleLine(redacted[key] ?? ""))"
+        }.joined(separator: "\n")
+    }
+
+    private static func redactInlineValue(in value: String) -> String {
+        if var components = URLComponents(string: value) {
+            var changed = false
+            if components.password != nil {
+                components.password = marker
+                changed = true
+            }
+            if let queryItems = components.queryItems {
+                components.queryItems = queryItems.map { item in
+                    guard item.value != nil, isSensitiveName(item.name) else { return item }
+                    changed = true
+                    return URLQueryItem(name: item.name, value: marker)
+                }
+            }
+            if changed {
+                return components.string ?? value
+            }
+        }
+
+        for separator in [Character("="), Character(":")] {
+            guard let index = value.firstIndex(of: separator) else { continue }
+            let name = String(value[..<index])
+            if isSensitiveName(name) {
+                return "\(name)\(separator)\(marker)"
+            }
+        }
+
+        return value
+    }
+
+    private static func isSensitiveName(_ name: String) -> Bool {
+        let normalized = name.lowercased().filter { $0.isLetter || $0.isNumber }
+        return sensitiveTerms.contains { normalized.contains($0) }
+    }
+
+    private static func singleLine(_ value: String) -> String {
+        value.replacingOccurrences(of: "\r", with: #"\r"#)
+            .replacingOccurrences(of: "\n", with: #"\n"#)
+    }
+}
+
 public extension Process {
     /// Run the process returning a stream output
     func runStream(name: String, fileHandle: FileHandle?) throws -> AsyncStream<ProcessOutput> {
-        let stream = makeStream(name: name, fileHandle: fileHandle)
-        self.logProcessInfo(name: name)
+        let safeName = ProcessLogRedactor.commandLine(name)
+        let stream = makeStream(name: safeName, fileHandle: fileHandle)
+        self.logProcessInfo(name: safeName)
         fileHandle?.writeInfo(for: self)
         try run()
         return stream
@@ -92,20 +183,21 @@ public extension Process {
     private func logTermination(name: String) {
         if terminationStatus == 0 {
             Logger.wineKit.info(
-                "Terminated \(name) with status code '\(self.terminationStatus, privacy: .public)'"
+                "Terminated \(name, privacy: .public) with status code '\(self.terminationStatus, privacy: .public)'"
             )
         } else {
             Logger.wineKit.warning(
-                "Terminated \(name) with status code '\(self.terminationStatus, privacy: .public)'"
+                "Terminated \(name, privacy: .public) with status code '\(self.terminationStatus, privacy: .public)'"
             )
         }
     }
 
     private func logProcessInfo(name: String) {
-        Logger.wineKit.info("Running process \(name)")
+        Logger.wineKit.info("Running process \(name, privacy: .public)")
 
         if let arguments = arguments {
-            Logger.wineKit.info("Arguments: `\(arguments.joined(separator: " "))`")
+            let description = ProcessLogRedactor.argumentsDescription(arguments)
+            Logger.wineKit.info("Arguments: `\(description, privacy: .public)`")
         }
         if let executableURL = executableURL {
             Logger.wineKit.info("Executable: `\(executableURL.path(percentEncoded: false))`")
@@ -114,7 +206,8 @@ public extension Process {
             Logger.wineKit.info("Directory: `\(directory.path(percentEncoded: false))`")
         }
         if let environment = environment {
-            Logger.wineKit.info("Environment: \(environment)")
+            let description = ProcessLogRedactor.environmentDescription(environment)
+            Logger.wineKit.info("Environment:\n\(description, privacy: .public)")
         }
     }
 }
