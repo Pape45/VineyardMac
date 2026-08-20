@@ -86,7 +86,7 @@ struct FileOpenView: View {
                         try await Wine.runProgram(at: fileURL, bottle: bottle)
                     }
                 } catch {
-                    print(error)
+                    await WhiskyApp.reportError(error, operation: String(localized: "button.run"))
                 }
             }
             dismiss()

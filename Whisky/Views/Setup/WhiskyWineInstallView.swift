@@ -18,6 +18,7 @@
 
 import SwiftUI
 import WhiskyKit
+import os.log
 
 struct WhiskyWineInstallView: View {
     @State var installing: Bool = true
@@ -94,6 +95,7 @@ struct WhiskyWineInstallView: View {
                 await proceed()
             } catch {
                 await MainActor.run {
+                    Logger.wineKit.error("Runtime installation failed: \(error)")
                     installing = false
                     errorMessage = error.localizedDescription
                 }

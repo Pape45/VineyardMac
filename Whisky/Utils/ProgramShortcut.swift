@@ -77,7 +77,7 @@ class ProgramShortcut {
                                        options: NSWorkspace.IconCreationOptions())
             NSWorkspace.shared.activateFileViewerSelecting([app])
         } catch {
-            print(error)
+            await WhiskyApp.reportError(error, operation: String(localized: "button.createShortcut"))
         }
     }
 }

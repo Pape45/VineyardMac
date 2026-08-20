@@ -89,7 +89,10 @@ struct BottleView: View {
                                                 try await Wine.runProgram(at: url, bottle: bottle)
                                             }
                                         } catch {
-                                            print("Failed to run external program: \(error)")
+                                            WhiskyApp.reportError(
+                                                error,
+                                                operation: String(localized: "button.run")
+                                            )
                                         }
                                         programLoading = false
                                     }

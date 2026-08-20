@@ -105,7 +105,7 @@ extension Bottle {
                     }
                 }
             } catch {
-                print(error)
+                Logger.wineKit.warning("Failed to read Start Menu shortcut: \(error)")
             }
         }
 
@@ -166,7 +166,7 @@ extension Bottle {
             }
             BottleVM.shared.loadBottles()
         } catch {
-            print("Failed to move bottle")
+            WhiskyApp.reportError(error, operation: String(localized: "button.moveBottle"))
         }
     }
 
@@ -174,7 +174,9 @@ extension Bottle {
         do {
             try Tar.tar(folder: url, toURL: destination)
         } catch {
-            print("Failed to export bottle")
+            Task { @MainActor in
+                WhiskyApp.reportError(error, operation: String(localized: "button.exportBottle"))
+            }
         }
     }
 
@@ -194,7 +196,7 @@ extension Bottle {
             }
             BottleVM.shared.loadBottles()
         } catch {
-            print("Failed to remove bottle")
+            WhiskyApp.reportError(error, operation: String(localized: "button.removeAlert"))
         }
     }
 
@@ -211,6 +213,9 @@ extension Bottle {
         + message
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
-        alert.runModal()
+        alert.addButton(withTitle: String(localized: "open.logs"))
+        if alert.runModal() == .alertSecondButtonReturn {
+            WhiskyApp.openLogsFolder()
+        }
     }
 }

@@ -18,6 +18,7 @@
 
 import SwiftUI
 import WhiskyKit
+import os.log
 
 struct WhiskyWineDownloadView: View {
     @State private var fractionProgress: Double = 0
@@ -114,6 +115,7 @@ struct WhiskyWineDownloadView: View {
                 task.resume()
             } catch {
                 guard downloadID == id else { return }
+                Logger.wineKit.error("Failed to prepare runtime download: \(error)")
                 errorMessage = error.localizedDescription
             }
         }
@@ -155,6 +157,7 @@ struct WhiskyWineDownloadView: View {
             } catch {
                 Task { @MainActor in
                     guard downloadID == id else { return }
+                    Logger.wineKit.error("Runtime download failed: \(error)")
                     errorMessage = error.localizedDescription
                 }
             }

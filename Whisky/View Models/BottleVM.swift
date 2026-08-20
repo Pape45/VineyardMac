@@ -55,7 +55,6 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
                 newBottle.inFlight = false
                 self.bottles = self.bottles
             } catch {
-                print("Failed to create new bottle: \(error)")
                 if let bottle {
                     try? await Wine.killBottle(bottle: bottle)
                 }
@@ -65,6 +64,7 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
                 if let bottle, let index = self.bottles.firstIndex(of: bottle) {
                     self.bottles.remove(at: index)
                 }
+                WhiskyApp.reportError(error, operation: String(localized: "button.createBottle"))
             }
         }
         return newBottleDir
