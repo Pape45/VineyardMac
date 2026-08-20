@@ -25,9 +25,12 @@ final class ProcessLogRedactorTests: XCTestCase {
             "API_TOKEN": "environment-secret",
             "COOKIE": "session-cookie",
             "DATABASE_URL": "https://user:database-secret@example.com/game",
+            "LINE\nBREAK": "ordinary-key-value",
             "LANG": "en_US.UTF-8",
+            "MULTILINE": "first\nsecond",
             "WINEDEBUG": "fixme-all"
         ])
+        let environmentDescription = ProcessLogRedactor.environmentDescription(environment)
         let arguments = ProcessLogRedactor.arguments([
             "start",
             "--token",
@@ -42,6 +45,10 @@ final class ProcessLogRedactorTests: XCTestCase {
         XCTAssertFalse(environment["DATABASE_URL"]?.contains("database-secret") ?? true)
         XCTAssertEqual(environment["LANG"], "en_US.UTF-8")
         XCTAssertEqual(environment["WINEDEBUG"], "fixme-all")
+        XCTAssertTrue(environmentDescription.contains(#"LINE\nBREAK=ordinary-key-value"#))
+        XCTAssertTrue(environmentDescription.contains(#"MULTILINE=first\nsecond"#))
+        XCTAssertFalse(environmentDescription.contains("LINE\nBREAK=ordinary-key-value"))
+        XCTAssertFalse(environmentDescription.contains("MULTILINE=first\nsecond"))
         XCTAssertFalse(description.contains("argument-secret"))
         XCTAssertFalse(description.contains("hunter2"))
         XCTAssertFalse(description.contains("url-secret"))

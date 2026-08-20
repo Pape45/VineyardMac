@@ -112,7 +112,12 @@ struct WhiskyApp: App {
     }
 
     static func openLogsFolder() {
-        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+        do {
+            try Wine.createLogsFolder()
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+        } catch {
+            Logger.wineKit.error("Failed to open logs folder: \(error)")
+        }
     }
 
     @MainActor

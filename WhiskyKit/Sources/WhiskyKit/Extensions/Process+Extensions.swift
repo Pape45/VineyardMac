@@ -71,7 +71,7 @@ enum ProcessLogRedactor {
     static func environmentDescription(_ environment: [String: String]) -> String {
         let redacted = self.environment(environment)
         return redacted.keys.sorted().map { key in
-            "\(key)=\(singleLine(redacted[key] ?? ""))"
+            "\(singleLine(key))=\(singleLine(redacted[key] ?? ""))"
         }.joined(separator: "\n")
     }
 
@@ -152,7 +152,7 @@ public extension Process {
                 guard let line = pipe.nextLine() else { return }
                 continuation.yield(.message(line))
                 guard !line.isEmpty else { return }
-                Logger.wineKit.info("\(line, privacy: .public)")
+                Logger.wineKit.info("\(line, privacy: .private)")
                 fileHandle?.write(line: line)
             }
 
@@ -160,7 +160,7 @@ public extension Process {
                 guard let line = pipe.nextLine() else { return }
                 continuation.yield(.error(line))
                 guard !line.isEmpty else { return }
-                Logger.wineKit.warning("\(line, privacy: .public)")
+                Logger.wineKit.warning("\(line, privacy: .private)")
                 fileHandle?.write(line: line)
             }
 
@@ -183,31 +183,31 @@ public extension Process {
     private func logTermination(name: String) {
         if terminationStatus == 0 {
             Logger.wineKit.info(
-                "Terminated \(name, privacy: .public) with status code '\(self.terminationStatus, privacy: .public)'"
+                "Terminated \(name, privacy: .private) with status code '\(self.terminationStatus, privacy: .public)'"
             )
         } else {
             Logger.wineKit.warning(
-                "Terminated \(name, privacy: .public) with status code '\(self.terminationStatus, privacy: .public)'"
+                "Terminated \(name, privacy: .private) with status code '\(self.terminationStatus, privacy: .public)'"
             )
         }
     }
 
     private func logProcessInfo(name: String) {
-        Logger.wineKit.info("Running process \(name, privacy: .public)")
+        Logger.wineKit.info("Running process \(name, privacy: .private)")
 
         if let arguments = arguments {
             let description = ProcessLogRedactor.argumentsDescription(arguments)
-            Logger.wineKit.info("Arguments: `\(description, privacy: .public)`")
+            Logger.wineKit.info("Arguments: `\(description, privacy: .private)`")
         }
         if let executableURL = executableURL {
-            Logger.wineKit.info("Executable: `\(executableURL.path(percentEncoded: false))`")
+            Logger.wineKit.info("Executable: `\(executableURL.path(percentEncoded: false), privacy: .private)`")
         }
         if let directory = currentDirectoryURL {
-            Logger.wineKit.info("Directory: `\(directory.path(percentEncoded: false))`")
+            Logger.wineKit.info("Directory: `\(directory.path(percentEncoded: false), privacy: .private)`")
         }
         if let environment = environment {
             let description = ProcessLogRedactor.environmentDescription(environment)
-            Logger.wineKit.info("Environment:\n\(description, privacy: .public)")
+            Logger.wineKit.info("Environment:\n\(description, privacy: .private)")
         }
     }
 }

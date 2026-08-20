@@ -86,7 +86,12 @@ extension Program {
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.addButton(withTitle: String(localized: "open.logs"))
         if alert.runModal() == .alertSecondButtonReturn {
-            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+            do {
+                try Wine.createLogsFolder()
+                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+            } catch {
+                Logger.wineKit.error("Failed to open logs folder: \(error)")
+            }
         }
     }
 }
