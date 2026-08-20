@@ -18,6 +18,7 @@
 
 import SwiftUI
 import WhiskyKit
+import os.log
 
 @main
 struct WhiskyApp: App {
@@ -104,14 +105,38 @@ struct WhiskyApp: App {
                 do {
                     try await Wine.killBottle(bottle: bottle)
                 } catch {
-                    print("Failed to kill bottle: \(error)")
+                    Logger.wineKit.error("Failed to stop bottle: \(error)")
                 }
             }
         }
     }
 
     static func openLogsFolder() {
-        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+        do {
+            try Wine.createLogsFolder()
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+        } catch {
+            Logger.wineKit.error("Failed to open logs folder: \(error)")
+        }
+    }
+
+    @MainActor
+    static func reportError(_ error: Error, operation: String) {
+        let errorType = String(describing: type(of: error))
+        let description = error.localizedDescription
+        Logger.wineKit.error(
+            "\(operation, privacy: .public) failed (\(errorType, privacy: .public)): \(description, privacy: .private)"
+        )
+
+        let alert = NSAlert()
+        alert.messageText = String(localized: "error.operationFailed")
+        alert.informativeText = "\(operation): \(description)"
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: String(localized: "button.ok"))
+        alert.addButton(withTitle: String(localized: "open.logs"))
+        if alert.runModal() == .alertSecondButtonReturn {
+            openLogsFolder()
+        }
     }
 
     static func deleteOldLogs() {
@@ -141,7 +166,7 @@ struct WhiskyApp: App {
             do {
                 try FileManager.default.removeItem(at: log)
             } catch {
-                print("Failed to delete log: \(error)")
+                Logger.wineKit.error("Failed to delete old log: \(error)")
             }
         }
     }

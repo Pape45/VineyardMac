@@ -8980,6 +8980,22 @@
         }
       }
     },
+    "error.operationFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation Failed"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’opération"
+          }
+        }
+      }
+    },
     "help.github" : {
       "localizations" : {
         "ar" : {

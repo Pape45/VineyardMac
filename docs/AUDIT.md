@@ -1,6 +1,6 @@
 # VineyardMac Audit
 
-Last updated: 2026-08-12
+Last updated: 2026-08-20
 
 This document tracks the practical work needed to turn the archived Whisky codebase into VineyardMac. It is not a promise of features. It is a checklist for keeping changes small, reviewable, and safe for contributors.
 
@@ -22,7 +22,7 @@ This document tracks the practical work needed to turn the archived Whisky codeb
   - `com.pape45.VineyardMac.Thumbnail`
 - The product, targets, schemes, many comments, localization strings, and user-facing copy still use Whisky names.
 - GitHub Actions verify the macOS build, WhiskyKit tests, and SwiftLint.
-- WhiskyKit has focused tests for runtime hashing, validation, and replacement.
+- WhiskyKit has focused tests for runtime hashing, validation, replacement, bottle metadata, and process-log redaction.
 
 ## Confirmed Cleanup
 
@@ -41,7 +41,9 @@ This document tracks the practical work needed to turn the archived Whisky codeb
 - Git history no longer embeds the retired `Whisky/Libraries/Wine` runtime payload.
 - Failed app bottle creation best-effort stops only the attempted prefix, removes only its new UUID directory and UI object, and preserves the parent and every pre-existing bottle. `WhiskyCmd create` keeps Wine `7.7.0`, while `WhiskyCmd add` rejects missing directories or metadata before changing `BottleData`.
 - Unfinished CLI export/install/uninstall stubs and the unused Progress.swift dependency have been removed.
-- Several runtime errors are still reported with `print` instead of user-facing diagnostics.
+- All Wine launches converge on `Process.runStream`. Known sensitive metadata forms in arguments and environments are heuristically masked, while environment keys and values are escaped onto one line. Dynamic process content remains private in Unified Logging; only fixed labels and safe numeric status codes are public.
+- Wine `.log` files retain app, macOS, full runtime, bottle Wine, Windows, sync, Metal, DXR, AVX, DXVK, command, and heuristically redacted environment metadata. Raw Wine stdout and stderr remain for diagnosis, so users must inspect each file before sharing it.
+- Common app launch, bottle creation, Wine tool, Winetricks, shortcut, runtime setup, and maintenance errors now use structured logging plus existing inline errors or localized alerts. Open Logs creates and reveals the Wine logs folder even before the first Wine launch; application errors otherwise remain in Unified Logging. Intentional `WhiskyCmd` output remains unchanged.
 - `Bottle`, `Program`, and `BottleVM` use `@unchecked Sendable`; treat this as concurrency debt.
 
 ## First Release Target
@@ -70,9 +72,8 @@ The next local release should be boring:
    - Document where Wine libraries, bottles, and logs live.
 
 4. Improve diagnostics before UI redesign.
-   - Convert common setup and launch failures into actionable messages.
-   - Make logs easy to find from the UI.
-   - Capture Wine version, bottle settings, launch command, and environment in one place.
+   - Core milestone complete: common setup and launch failures are actionable, Wine logs are directly accessible, and launch context uses known-form metadata redaction plus private Unified Logging fields. Raw Wine output still requires review before sharing.
+   - Use reproducible game tests to identify the next real diagnostic gaps before adding classifiers, exports, or troubleshooting UI.
 
 5. Redesign UI around real workflows.
    - Bottle list and status.

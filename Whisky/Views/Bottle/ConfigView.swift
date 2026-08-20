@@ -18,6 +18,7 @@
 
 import SwiftUI
 import WhiskyKit
+import os.log
 
 enum LoadingState {
     case loading
@@ -61,8 +62,11 @@ struct ConfigView: View {
                                     try await Wine.changeBuildVersion(bottle: bottle, version: buildVersion)
                                     buildVersionLoadingState = .success
                                 } catch {
-                                    print("Failed to change build version")
                                     buildVersionLoadingState = .failed
+                                    WhiskyApp.reportError(
+                                        error,
+                                        operation: String(localized: "config.buildVersion")
+                                    )
                                 }
                             }
                         }
@@ -76,8 +80,11 @@ struct ConfigView: View {
                                     try await Wine.changeRetinaMode(bottle: bottle, retinaMode: newValue)
                                     retinaModeLoadingState = .success
                                 } catch {
-                                    print("Failed to change build version")
                                     retinaModeLoadingState = .failed
+                                    WhiskyApp.reportError(
+                                        error,
+                                        operation: String(localized: "config.retinaMode")
+                                    )
                                 }
                             }
                         })
@@ -164,7 +171,10 @@ struct ConfigView: View {
                         do {
                             try await Wine.control(bottle: bottle)
                         } catch {
-                            print("Failed to launch control")
+                            WhiskyApp.reportError(
+                                error,
+                                operation: String(localized: "config.controlPanel")
+                            )
                         }
                     }
                 }
@@ -173,7 +183,10 @@ struct ConfigView: View {
                         do {
                             try await Wine.regedit(bottle: bottle)
                         } catch {
-                            print("Failed to launch regedit")
+                            WhiskyApp.reportError(
+                                error,
+                                operation: String(localized: "config.regedit")
+                            )
                         }
                     }
                 }
@@ -182,7 +195,10 @@ struct ConfigView: View {
                         do {
                             try await Wine.cfg(bottle: bottle)
                         } catch {
-                            print("Failed to launch winecfg")
+                            WhiskyApp.reportError(
+                                error,
+                                operation: String(localized: "config.winecfg")
+                            )
                         }
                     }
                 }
@@ -200,7 +216,7 @@ struct ConfigView: View {
                     retinaMode = try await Wine.retinaMode(bottle: bottle)
                     retinaModeLoadingState = .success
                 } catch {
-                    print(error)
+                    Logger.wineKit.error("Failed to read Retina mode: \(error)")
                     retinaModeLoadingState = .failed
                 }
             }
@@ -209,7 +225,6 @@ struct ConfigView: View {
                     dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
                     dpiConfigLoadingState = .success
                 } catch {
-                    print(error)
                     // If DPI has not yet been edited, there will be no registry entry
                     dpiConfigLoadingState = .success
                 }
@@ -226,8 +241,11 @@ struct ConfigView: View {
                         bottle.settings.windowsVersion = newValue
                         loadBuildName()
                     } catch {
-                        print(error)
                         winVersionLoadingState = .failed
+                        WhiskyApp.reportError(
+                            error,
+                            operation: String(localized: "config.winVersion")
+                        )
                     }
                 }
             }
@@ -240,8 +258,11 @@ struct ConfigView: View {
                         try await Wine.changeDpiResolution(bottle: bottle, dpi: dpiConfig)
                         dpiConfigLoadingState = .success
                     } catch {
-                        print(error)
                         dpiConfigLoadingState = .failed
+                        WhiskyApp.reportError(
+                            error,
+                            operation: String(localized: "config.dpi")
+                        )
                     }
                 }
             }
@@ -259,7 +280,7 @@ struct ConfigView: View {
 
                 buildVersionLoadingState = .success
             } catch {
-                print(error)
+                Logger.wineKit.error("Failed to read Windows build version: \(error)")
                 buildVersionLoadingState = .failed
             }
         }

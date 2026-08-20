@@ -19,6 +19,7 @@
 import CryptoKit
 import Foundation
 import SemanticVersion
+import os.log
 
 public class WhiskyWineInstaller {
     private static let releaseURL = URL(
@@ -85,12 +86,8 @@ public class WhiskyWineInstaller {
         try? FileManager.default.removeItem(at: archive)
     }
 
-    public static func uninstall() {
-        do {
-            try FileManager.default.removeItem(at: libraryFolder)
-        } catch {
-            print("Failed to uninstall WhiskyWine: \(error)")
-        }
+    public static func uninstall() throws {
+        try FileManager.default.removeItem(at: libraryFolder)
     }
 
     public static func shouldUpdateWhiskyWine() async -> (Bool, SemanticVersion) {
@@ -100,7 +97,7 @@ public class WhiskyWineInstaller {
             let remoteVersion = try await whiskyWineRelease().version
             return (localVersion.map { $0 < remoteVersion } ?? false, remoteVersion)
         } catch {
-            print(error)
+            Logger.wineKit.warning("Failed to check for a runtime update: \(error)")
             return (false, SemanticVersion(0, 0, 0))
         }
     }
@@ -151,7 +148,9 @@ public class WhiskyWineInstaller {
             let info = try decoder.decode(WhiskyWineVersion.self, from: data)
             return info.version
         } catch {
-            print(error)
+            if FileManager.default.fileExists(atPath: folder.path) {
+                Logger.wineKit.warning("Failed to read installed runtime version: \(error)")
+            }
             return nil
         }
     }

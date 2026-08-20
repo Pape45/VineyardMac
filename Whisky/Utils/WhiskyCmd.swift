@@ -18,6 +18,8 @@
 
 import Foundation
 import AppKit
+import WhiskyKit
+import os.log
 
 class WhiskyCmd {
     static func install() async {
@@ -36,16 +38,15 @@ class WhiskyCmd {
                 appleScript.executeAndReturnError(&error)
 
                 if let error = error {
-                    print(error)
+                    Logger.wineKit.error("Failed to install Whisky CLI: \(error)")
                     if let description = error["NSAppleScriptErrorMessage"] as? String {
                         await MainActor.run {
-                            let alert = NSAlert()
-                            alert.messageText = String(localized: "alert.message")
-                            alert.informativeText = String(localized: "alert.info")
-                                + description
-                            alert.alertStyle = .critical
-                            alert.addButton(withTitle: String(localized: "button.ok"))
-                            alert.runModal()
+                            let error = NSError(
+                                domain: "WhiskyCmd",
+                                code: 1,
+                                userInfo: [NSLocalizedDescriptionKey: description]
+                            )
+                            WhiskyApp.reportError(error, operation: String(localized: "install.cli"))
                         }
                     }
                 }

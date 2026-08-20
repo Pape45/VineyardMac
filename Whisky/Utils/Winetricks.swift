@@ -19,6 +19,7 @@
 import Foundation
 import AppKit
 import WhiskyKit
+import os.log
 
 enum WinetricksCategories: String {
     case apps
@@ -63,17 +64,15 @@ class Winetricks {
             appleScript.executeAndReturnError(&error)
 
             if let error = error {
-                print(error)
+                Logger.wineKit.error("Failed to launch Winetricks: \(error)")
                 if let description = error["NSAppleScriptErrorMessage"] as? String {
                     await MainActor.run {
-                        let alert = NSAlert()
-                        alert.messageText = String(localized: "alert.message")
-                        alert.informativeText = String(localized: "alert.info")
-                            + " \(command): "
-                            + description
-                        alert.alertStyle = .critical
-                        alert.addButton(withTitle: String(localized: "button.ok"))
-                        alert.runModal()
+                        let error = NSError(
+                            domain: "Winetricks",
+                            code: 1,
+                            userInfo: [NSLocalizedDescriptionKey: description]
+                        )
+                        WhiskyApp.reportError(error, operation: String(localized: "button.winetricks"))
                     }
                 }
             }

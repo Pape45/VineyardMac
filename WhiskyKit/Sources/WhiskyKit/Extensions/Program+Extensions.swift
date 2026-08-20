@@ -39,6 +39,7 @@ extension Program {
                     at: self.url, args: arguments, bottle: self.bottle, environment: environment
                 )
             } catch {
+                Logger.wineKit.error("Failed to run program: \(error)")
                 await MainActor.run {
                     self.showRunError(message: error.localizedDescription)
                 }
@@ -83,6 +84,14 @@ extension Program {
         + message
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
-        alert.runModal()
+        alert.addButton(withTitle: String(localized: "open.logs"))
+        if alert.runModal() == .alertSecondButtonReturn {
+            do {
+                try Wine.createLogsFolder()
+                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+            } catch {
+                Logger.wineKit.error("Failed to open logs folder: \(error)")
+            }
+        }
     }
 }

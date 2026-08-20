@@ -59,11 +59,11 @@ extension FileHandle {
         var header = String()
 
         if let arguments = process.arguments {
-            header += "Arguments: \(arguments.joined(separator: " "))\n\n"
+            header += "Arguments: \(ProcessLogRedactor.argumentsDescription(arguments))\n\n"
         }
 
         if let environment = process.environment, !environment.isEmpty {
-            header += "Environment:\n\(environment as AnyObject)\n\n"
+            header += "Environment:\n\(ProcessLogRedactor.environmentDescription(environment))\n\n"
         }
 
         write(line: header)
@@ -75,19 +75,20 @@ extension FileHandle {
         header += "Bottle URL: \(bottle.url.path)\n\n"
 
         if let version = WhiskyWineInstaller.whiskyWineVersion() {
-            header += "WhiskyWine Version: \(version.major).\(version.minor).\(version.patch)\n"
+            header += "WhiskyWine Version: \(version)\n"
         }
+        header += "Bottle Wine Version: \(bottle.settings.wineVersion)\n"
         header += "Windows Version: \(bottle.settings.windowsVersion)\n"
         header += "Enhanced Sync: \(bottle.settings.enhancedSync)\n\n"
 
         header += "Metal HUD: \(bottle.settings.metalHud)\n"
-        header += "Metal Trace: \(bottle.settings.metalTrace)\n\n"
+        header += "Metal Trace: \(bottle.settings.metalTrace)\n"
+        header += "DXR: \(bottle.settings.dxrEnabled)\n"
+        header += "AVX: \(bottle.settings.avxEnabled)\n\n"
 
-        if bottle.settings.dxvk {
-            header += "DXVK: \(bottle.settings.dxvk)\n"
-            header += "DXVK Async: \(bottle.settings.dxvkAsync)\n"
-            header += "DXVK HUD: \(bottle.settings.dxvkHud)\n\n"
-        }
+        header += "DXVK: \(bottle.settings.dxvk)\n"
+        header += "DXVK Async: \(bottle.settings.dxvkAsync)\n"
+        header += "DXVK HUD: \(bottle.settings.dxvkHud)\n\n"
 
         write(line: header)
     }

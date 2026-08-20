@@ -146,7 +146,12 @@ struct InstallStatusView: View {
 
     func uninstall() {
         if name == "WhiskyWine" {
-            WhiskyWineInstaller.uninstall()
+            do {
+                try WhiskyWineInstaller.uninstall()
+            } catch {
+                WhiskyApp.reportError(error, operation: String(localized: "setup.uninstall"))
+                return
+            }
         }
 
         shouldCheckInstallStatus.toggle()
