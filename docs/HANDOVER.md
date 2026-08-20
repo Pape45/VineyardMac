@@ -71,7 +71,7 @@ The maintainer pastes the worker's final report back into the coordinator chat b
 - A signed Debug build succeeds for the app, CLI, and thumbnail extension.
 - The resulting app passes `codesign --verify --deep --strict` outside the Codex sandbox.
 - SwiftLint reports zero violations during the Xcode build.
-- `swift test --package-path WhiskyKit` passes four focused tests: the three runtime installer tests and the missing bottle metadata regression test.
+- `swift test --package-path WhiskyKit` passes five focused tests: three runtime installer tests, the missing bottle metadata regression test, and the process-log redaction test.
 - SwiftLint, bison, LLVM, pkgconf, Wrangler, and the required Xcode package dependencies were available when last checked. The 2026-08-12 GPTK 4 audit found no installed `x86_64-w64-mingw32-gcc`; recheck tools after environment changes and do not reinstall automatically.
 
 Current local bundle identifiers are:
@@ -240,13 +240,23 @@ Keep VineyardMac focused on strict runtime metadata, manifests, immutable object
 
 Front-end direction remains original to VineyardMac. Figma Make may generate a web prototype from VineyardMac requirements, but its React/HTML/CSS output is only a structural and visual reference. Recreate the accepted design natively in SwiftUI using existing project patterns, macOS navigation and controls, semantic colors, accessibility, keyboard behavior, and resizable layouts; do not transliterate web positioning or clone another project's screens, assets, text, or branding.
 
+## Stability Diagnostics
+
+The pre-game diagnostics milestone traces every current user launch path to its real execution point. Program tiles, lists, menus, and pins call `Program.run`; the bottle file picker and external-file sheet call `Wine.runProgram` or `Wine.runBatchFile`; bottle creation calls `BottleVM.createNewBottle` and then `Wine.changeWinVersion`; configuration tools call the shared `Wine` helpers; Winetricks and Terminal launches use their existing AppleScript paths; and runtime setup remains `SetupView` download followed by `WhiskyWineInstaller.install`. Every Wine process converges on `Process.runStream`. `WhiskyCmd` table, success, shell-environment, and command-error output remains intentional CLI output rather than app diagnostics.
+
+`Process.runStream` now applies one redaction policy to process names in Unified Logging and to arguments and environment values in both Unified Logging and Wine `.log` files. Token, secret, password, credential, cookie, authorization, API/access/private key, and session identifiers are replaced with `<redacted>`; separate sensitive flag values, inline assignments, URL passwords, and sensitive query values are covered, while ordinary arguments and environment values remain. Embedded newlines are escaped. A focused WhiskyKit test locks those guarantees.
+
+Launch files still record the app version, macOS version, full managed-runtime version, bottle Wine version, Windows version, sync, Metal, DXR, AVX, DXVK settings, useful command arguments, and redacted environment. Common app launch, bottle-creation, Wine-tool, Winetricks, shortcut, runtime-download/install, and maintenance failures no longer disappear through `print`: they use `Logger`, existing inline setup errors or a localized alert, and the existing Open Logs Folder action. Expected missing DPI/runtime metadata remains non-error state rather than noisy logging.
+
+The targeted reference was `frankea/Whisky` commit `4f1507944c92a1eca60ca12f0a7edaf22778aa40`, specifically its GPL-compatible `Redactor.swift`, process logging, and file-log handling. VineyardMac did not copy that diagnostics/export framework: upstream removes all environment values from persisted logs, while this independently implemented smaller policy preserves ordinary values and masks only sensitive material required here.
+
 ## Known Product State
 
 - The project is Swift/SwiftUI; Wine and graphics components are external managed artifacts, not C code implemented in the app repository.
 - Public branding says VineyardMac, but source directories, targets, schemes, localization keys, CLI names, and some links still say Whisky.
 - Do not mass-rename those identifiers. Bundle IDs and container paths own user data and require migration and rollback plans.
 - The first priority remains stabilization, runtime activation, diagnostics, and reproducible compatibility testing. A broad UI redesign comes later.
-- Common runtime failures still need actionable user-facing diagnostics and easier log access.
+- Core launch/setup failures now provide actionable errors and direct log access; game-specific interpretation should be driven by the next reproducible game tests rather than a speculative diagnostics framework.
 - High CPU usage was observed once while Whisky was running, but it has not been profiled or attributed. Treat it as an investigation, not a confirmed regression.
 - There is no public VineyardMac release workflow, Sparkle release, Developer ID notarization, or Homebrew release automation yet.
 - The single Xcode warning seen during the signed build was App Intents metadata extraction being skipped because the project has no AppIntents dependency; it did not fail the build.
